@@ -9,7 +9,7 @@ Inspired by https://github.com/WongKinYiu/yolov7
 
 1. **Clone the repository**
 
-2. **Install Python packages**
+2. **Install Python packages (Python 3.9 recommended)**
 
    ```sh
    pip install -r requirements.txt
@@ -18,3 +18,8 @@ Inspired by https://github.com/WongKinYiu/yolov7
 
    ```sh
    python yolov7_video.py
+
+
+## Information
+
+Frames can be skipped by uncommenting the Skip Frames section and adjusting the **frame_skip** variable
