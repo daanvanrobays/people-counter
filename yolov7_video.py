@@ -6,7 +6,7 @@ import time
 from config.config import get_config
 from drawing.frame_drawer import draw_on_frame
 from tracking.centroid_tracker import CentroidTracker
-from tracking.tracker import filter_detections, correlate_objects, handle_tracked_objects
+from tracking.tracker import filter_detections, handle_tracked_objects
 from api.api import post_api
 
 logging.basicConfig(level=logging.INFO, format="[INFO] %(message)s")
@@ -24,12 +24,9 @@ def main():
     config = get_config()
 
     api_time = time.time() if config.enable_api else None
-    correlation_angle = config.correlation_angle
-    correlation_distance = config.correlation_distance
 
     width, height = None, None
-    trackable_objects = {}
-    # total_frames = 1
+    total_frames = 1
     total_down = 0
     total_up = 0
     delta = 0
@@ -39,13 +36,12 @@ def main():
     model, device = load_model()
 
     # Initialize the video stream
-    # cap = cv2.VideoCapture('test/umbrella-2.mp4')
-    cap = cv2.VideoCapture(config.stream_url)
+    cap = cv2.VideoCapture('test/umbrella-crosswalk.webm')
+    # cap = cv2.VideoCapture(config.stream_url)
 
     # Initialize CentroidTracker
-    person_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
-    umbrella_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
-
+    centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
+    results = None
     # Loop over the frames from the video stream
     while True:
         ret, frame = cap.read()
@@ -81,26 +77,20 @@ def main():
         umbrella_centroids = [det[:4] for det in umbrella_detections]
 
         # Update trackers
-        tracked_persons = person_tracker.update(person_centroids)
-        tracked_umbrellas = umbrella_tracker.update(umbrella_centroids)
+        filtered_persons = centroid_tracker.update(person_centroids, obj_type="person")
+        filtered_umbrellas = centroid_tracker.update(umbrella_centroids, obj_type="umbrella")
 
-        # Correlate persons with umbrellas
-        correlations = correlate_objects(tracked_persons, tracked_umbrellas, correlation_angle, correlation_distance)
+        correlations = centroid_tracker.correlate_objects(config.angle_offset, config.distance_offset)
 
-        # Persons
         delta, total, total_down, total_up = handle_tracked_objects(delta, height, total, total_down, total_up,
-                                                                    trackable_objects, tracked_persons)
-
-        # Umbrellas
-        # delta, total, total_down, total_up = handle_tracked_objects(delta, height, total, total_down, total_up,
-        #                                                             trackable_objects, tracked_umbrellas)
+                                                                    centroid_tracker.objects)
 
         info_status = [("Exit", total_up), ("Enter", total_down), ("Delta", delta)]
         info_total = [("Total people inside", total)]
 
         # Draw results on the frame
-        frame = draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height,
-                              info_status, info_total)
+        frame = draw_on_frame(resized_frame, filtered_persons, filtered_umbrellas, correlations,
+                              width, height, info_status, info_total)
 
         if config.enable_api and (time.time() - api_time) > config.api_interval:
             try:
@@ -111,7 +101,7 @@ def main():
             finally:
                 delta = 0
 
-        # total_frames += 1
+        total_frames += 1
         # Show the output frame
         cv2.imshow('AFF People Tracker', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
