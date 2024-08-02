@@ -1,36 +1,21 @@
-import cv2
-import threading
-import queue
-from typing import Optional
+import cv2, threading, queue
 
 
 class ThreadingClass:
-    """
-    A class to handle video capture using threading to reduce frame lag.
-    """
-
-    def __init__(self, name: str):
-        """
-        Initialize the threading class with a video source.
-
-        :param name: The video source, typically a filename or camera index.
-        """
+    # initiate threading class
+    def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
-        if not self.cap.isOpened():
-            raise ValueError("Error opening video stream or file")
-
+        # define an empty queue and thread
         self.q = queue.Queue()
-        self.thread = threading.Thread(target=self._reader, daemon=True)
-        self.thread.start()
-        self.running = True
+        t = threading.Thread(target=self._reader)
+        t.daemon = True
+        t.start()
 
-    def _reader(self) -> None:
-        """
-        Read frames from the video source as soon as they are available and store them in a queue.
-        This approach reduces the frame lag by avoiding OpenCV's internal buffer.
-        """
-        while self.running:
-            ret, frame = self.cap.read()
+    # read the frames as soon as they are available
+    # this approach removes OpenCV's internal buffer and reduces the frame lag
+    def _reader(self):
+        while True:
+            ret, frame = self.cap.read()  # read the frames and ---
             if not ret:
                 break
             if not self.q.empty():
@@ -38,20 +23,10 @@ class ThreadingClass:
                     self.q.get_nowait()
                 except queue.Empty:
                     pass
-            self.q.put(frame)
+            self.q.put(frame)  # --- store them in a queue (instead of the buffer)
 
-    def read(self) -> Optional:
-        """
-        Fetch frames from the queue one by one.
+    def read(self):
+        return self.q.get()  # fetch frames from the queue one by one
 
-        :return: The next frame from the queue.
-        """
-        return self.q.get()
-
-    def release(self) -> None:
-        """
-        Release the video capture resource and stop the reader thread.
-        """
-        self.running = False
-        self.thread.join()
-        self.cap.release()
+    def release(self):
+        return self.cap.release()  # release the hw resource
