@@ -173,21 +173,20 @@ class CentroidTracker:
                     angle = angle_from_vertical(person_data['centroid'], umbrella_data['centroid'])
                     if angle <= angle_offset:
                         # Increase score if within threshold distance and angle
-                        score_increment = 0.05
+                        score_increment = 0.01
                         update_score(person_data, umbrella_id, score_increment)
                         update_score(umbrella_data, person_id, score_increment)
 
                         correlations.append((person_id, person_data['correlations'][umbrella_id],
                                              umbrella_id, umbrella_data['correlations'][person_id]))
-                        log.info(correlations)
                     else:
                         # Decrease score if angle is beyond threshold
-                        score_decrement = -0.03
+                        score_decrement = -0.05
                         update_score(person_data, umbrella_id, score_decrement)
                         update_score(umbrella_data, person_id, score_decrement)
                 else:
                     # Decrease score if distance is beyond threshold
-                    score_decrement = -0.03
+                    score_decrement = -0.05
                     update_score(person_data, umbrella_id, score_decrement)
                     update_score(umbrella_data, person_id, score_decrement)
 

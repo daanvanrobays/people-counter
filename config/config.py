@@ -10,6 +10,7 @@ class Config:
     distance_offset: float = 85.0
     device: str = "default"
     stream_url: str = ""
+    coords_left_line: int = 640
 
 
 def get_config():
@@ -21,5 +22,6 @@ def get_config():
         angle_offset=45.0,
         distance_offset=80.0,
         device="Kamerotski",
-        stream_url=""
+        stream_url="",
+        coords_left_line=640
     )

@@ -13,8 +13,9 @@ def draw_boxes_model(frame, detections, classes, target_classes):
     return frame
 
 
-def draw_info(frame, width, height, info_status, info_total):
+def draw_info(frame, width, height, info_status, info_total, coords_left):
     cv2.line(frame, (0, height // 2), (width, height // 2), (0, 0, 255), 1)
+    cv2.line(frame, (coords_left, 0), (coords_left, height), (0, 0, 255), 1)
     for (i, (k, v)) in enumerate(info_status):
         text = "{}: {}".format(k, v)
         cv2.putText(frame, text, (10, height - ((i * 20) + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
@@ -55,9 +56,9 @@ def draw_correlations(frame, correlations, tracked_persons, tracked_umbrellas):
 
 
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
-                  info_total):
+                  info_total, coords_left):
     frame = draw_boxes(resized_frame, tracked_persons, "P")
     frame = draw_boxes(resized_frame, tracked_umbrellas, "U")
     frame = draw_correlations(resized_frame, correlations, tracked_persons, tracked_umbrellas)
-    frame = draw_info(resized_frame, width, height, info_status, info_total)
+    frame = draw_info(resized_frame, width, height, info_status, info_total, coords_left)
     return frame
