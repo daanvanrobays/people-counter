@@ -12,8 +12,11 @@ def log_event(event_type, count, delta, direction, height, centroid, initial_pos
         f"centroid: {centroid}, position: {initial_position}")
 
 
-def filter_detections(detections, target_class):
-    filtered_detections = [tuple(map(int, det[:4])) for det in detections if int(det[5]) == target_class]
+def filter_detections(detections, target_class, confidence_threshold=0.6):
+    filtered_detections = [
+        tuple(map(int, det[:4])) for det in detections
+        if int(det[5]) == target_class and det[4] >= confidence_threshold
+    ]
     return filtered_detections
 
 

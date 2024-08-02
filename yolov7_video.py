@@ -1,4 +1,5 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 
 import torch
 import cv2
@@ -102,13 +103,12 @@ def main():
                               width, height, info_status, info_total, config.coords_left_line)
 
         if config.enable_api and (time.time() - api_time) > config.api_interval:
-            try:
-                post_api(config.api_url, config.device, total, total_down, total_up, delta)
-                api_time = time.time()
-            except Exception as ex:
-                log.error(repr(ex))
-            finally:
-                delta = 0
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                # Submit tasks to the executor
+                executor.submit(post_api, config.api_url, config.device, total, total_down, total_up, delta)
+
+            api_time = time.time()
+            delta = 0
 
         total_frames += 1
         # Show the output frame
