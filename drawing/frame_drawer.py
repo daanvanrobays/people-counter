@@ -19,9 +19,9 @@ def draw_info(frame, width, height, info_status, info_total, coords_left):
     for (i, (k, v)) in enumerate(info_status):
         text = "{}: {}".format(k, v)
         cv2.putText(frame, text, (10, height - ((i * 20) + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    for (i, (k, v)) in enumerate(info_total):
-        text = "{}: {}".format(k, v)
-        cv2.putText(frame, text, (265, height - ((i * 20) + 60)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+    # for (i, (k, v)) in enumerate(info_total):
+    #     text = "{}: {}".format(k, v)
+    #     cv2.putText(frame, text, (265, height - ((i * 20) + 60)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     return frame
 
 
@@ -58,7 +58,7 @@ def draw_correlations(frame, correlations, tracked_persons, tracked_umbrellas):
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
                   info_total, coords_left):
     frame = draw_boxes(resized_frame, tracked_persons, "P")
-    frame = draw_boxes(resized_frame, tracked_umbrellas, "U")
-    frame = draw_correlations(resized_frame, correlations, tracked_persons, tracked_umbrellas)
+    # frame = draw_boxes(resized_frame, tracked_umbrellas, "U")
+    # frame = draw_correlations(resized_frame, correlations, tracked_persons, tracked_umbrellas)
     frame = draw_info(resized_frame, width, height, info_status, info_total, coords_left)
     return frame

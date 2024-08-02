@@ -21,6 +21,9 @@ def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_o
     # Convert filtered detections to list of bounding boxes
     # Update tracking with bounding boxes
     for (object_id, data) in tracked_objects.items():
+        if data['type'] == 'umbrella':
+            continue
+
         centroid = data['centroid']
 
         if data.get('initialPositionUp') is None:

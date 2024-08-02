@@ -1,3 +1,5 @@
+import argparse
+
 import torch
 import cv2
 import logging
@@ -21,8 +23,18 @@ def load_model():
     return torch.hub.load('WongKinYiu/yolov7', 'custom', 'yolov7.pt', source='github').to(device), device
 
 
+def parse_arguments():
+    # function to parse the arguments
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i", "--input", type=int, default=0,
+                    help="config input")
+    args = vars(ap.parse_args())
+    return args
+
+
 def main():
-    config = get_config()
+    args = parse_arguments()
+    config = get_config(args["input"])
 
     api_time = time.time() if config.enable_api else None
 
@@ -64,7 +76,6 @@ def main():
 
         # Process results
         detections = results.xyxy[0].cpu().numpy()  # Move to CPU and convert to numpy array
-        # log.info(detections)
 
         # Class IDs: 0 for person, 25 for umbrella
         person_detections = filter_detections(detections, target_class=0)

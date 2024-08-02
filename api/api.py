@@ -13,8 +13,6 @@ def post_api(url, device, total: int, total_down: int, total_up: int, delta: int
     post_thread = threading.Thread(target=post_request, args=(url, post_body))
     # Starting the thread
     post_thread.start()
-    # Joining the thread to wait for it to finish
-    post_thread.join()
 
 
 def post_request(url, post_body):
