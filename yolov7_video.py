@@ -5,6 +5,7 @@ import time
 
 from config.config import get_config
 from drawing.frame_drawer import draw_on_frame
+from helpers.thread import ThreadingClass
 from tracking.centroid_tracker import CentroidTracker
 from tracking.tracker import filter_detections, handle_tracked_objects
 from api.api import post_api
@@ -36,12 +37,11 @@ def main():
     model, device = load_model()
 
     # Initialize the video stream
-    cap = cv2.VideoCapture('test/umbrella-crosswalk.webm')
-    # cap = cv2.VideoCapture(config.stream_url)
+    cap = ThreadingClass(config.stream_url)
 
     # Initialize CentroidTracker
     centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
-    results = None
+
     # Loop over the frames from the video stream
     while True:
         ret, frame = cap.read()
