@@ -173,7 +173,7 @@ class CentroidTracker:
                     angle = angle_from_vertical(person_data['centroid'], umbrella_data['centroid'])
                     if angle <= angle_offset:
                         # Increase score if within threshold distance and angle
-                        score_increment = 0.01
+                        score_increment = 0.02
                         update_score(person_data, umbrella_id, score_increment)
                         update_score(umbrella_data, person_id, score_increment)
 

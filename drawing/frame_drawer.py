@@ -58,7 +58,7 @@ def draw_correlations(frame, correlations, tracked_persons, tracked_umbrellas):
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
                   info_total, coords_left):
     frame = draw_boxes(resized_frame, tracked_persons, "P")
-    # frame = draw_boxes(resized_frame, tracked_umbrellas, "U")
-    # frame = draw_correlations(resized_frame, correlations, tracked_persons, tracked_umbrellas)
+    frame = draw_boxes(resized_frame, tracked_umbrellas, "U")
+    frame = draw_correlations(resized_frame, correlations, tracked_persons, tracked_umbrellas)
     frame = draw_info(resized_frame, width, height, info_status, info_total, coords_left)
     return frame
