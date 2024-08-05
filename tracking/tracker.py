@@ -12,7 +12,7 @@ def log_event(event_type, count, delta, direction, height, centroid, initial_pos
         f"centroid: {centroid}, position: {initial_position}")
 
 
-def filter_detections(detections, target_class, confidence_threshold=0.6):
+def filter_detections(detections, target_class, confidence_threshold=0.4):
     filtered_detections = [
         tuple(map(int, det[:4])) for det in detections
         if int(det[5]) == target_class and det[4] >= confidence_threshold
@@ -41,6 +41,8 @@ def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_o
                 log_event(f"EXIT {data['type']} {object_id}", total_up, delta, direction, height,
                           centroid[1], data['initialPositionUp'])
                 data['initialPositionUp'] = not data['initialPositionUp']
+            elif direction < 0 and centroid[0] > coords_left and centroid[1] < height // 2 and not data['initialPositionUp']:
+                data['initialPositionUp'] = not data['initialPositionUp']
 
             elif direction > 0 and centroid[0] < coords_left and centroid[1] > height // 2 and data['initialPositionUp']:
                 total_down += 1
@@ -49,5 +51,8 @@ def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_o
                           centroid[1], data['initialPositionUp'])
                 data['initialPositionUp'] = not data['initialPositionUp']
 
+            elif direction > 0 and centroid[0] > coords_left and centroid[1] > height // 2 and data['initialPositionUp']:
+                data['initialPositionUp'] = not data['initialPositionUp']
             total = total_down - total_up
+
     return delta, total, total_down, total_up

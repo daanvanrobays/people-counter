@@ -69,10 +69,6 @@ def main():
         resized_frame = cv2.resize(frame, (640, 360))
 
         # Perform inference
-        # if total_frames % 2 == 0:
-        #     flap = 'drol'
-        # else:
-        #     results = model(resized_frame, size=640)  # Specify size for faster inference
         results = model(resized_frame, size=640)  # Specify size for faster inference
 
         # Process results
