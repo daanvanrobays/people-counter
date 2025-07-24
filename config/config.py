@@ -13,26 +13,27 @@ class Config:
     coords_left_line: int = 640
 
 
-def get_config(config_type: int = 0):
-    if config_type == 0:
+def get_config(input):
+    # initiate config.
+    if input == 0:
         return Config(
-            enable_api=False,
-            api_url="",
+            enable_api=True,
+            api_url="https://aff.SERVER.be/stats",
             api_interval=60,
             angle_offset=45.0,
             distance_offset=80.0,
             device="Kamerotski",
-            stream_url="",
-            coords_left_line=530,
+            stream_url="rtsp://admin:PASSWORD@192.168.1.167:554/cam/realmonitor?channel=1&subtype=0",
+            coords_left_line=480
         )
     else:
         return Config(
-            enable_api=False,
-            api_url="",
+            enable_api=True,
+            api_url="https://aff.SERVER.be/stats",
             api_interval=60,
             angle_offset=45.0,
-            distance_offset=80.0,
+            distance_offset=85.0,
             device="Henk",
-            stream_url="",
-            coords_left_line=370,
+            stream_url="rtsp://admin:PASSWORD@192.168.1.49:554/cam/realmonitor?channel=1&subtype=0",
+            coords_left_line=395
         )
