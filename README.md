@@ -17,7 +17,7 @@ Inspired by https://github.com/WongKinYiu/yolov7
 3. **Run**
 
    ```sh
-   python yolov7_video.py
+   python run_tracker.py
 
 
 ## Information
