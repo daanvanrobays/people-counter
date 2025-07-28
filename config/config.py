@@ -12,6 +12,7 @@ class Config:
     stream_url: str = ""
     coords_left_line: int = 640
     verbose: bool = False
+    enable_composite_objects: bool = False
 
 
 def get_config(config_type: int = 0):
@@ -23,8 +24,9 @@ def get_config(config_type: int = 0):
             angle_offset=45.0,
             distance_offset=80.0,
             device="Kamerotski",
-            stream_url="test/umbrella-2.mp4",
+            stream_url="test/umbrella-1.mp4",
             coords_left_line=640,
+            enable_composite_objects=False,
         )
     else:
         return Config(
@@ -36,4 +38,5 @@ def get_config(config_type: int = 0):
             device="Henk",
             stream_url="",
             coords_left_line=640,
+            enable_composite_objects=False,
         )

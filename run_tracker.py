@@ -106,11 +106,36 @@ def main():
         person_bboxes = [det[:4] for det in person_detections]
         umbrella_bboxes = [det[:4] for det in umbrella_detections]
 
-        # Update trackers
-        filtered_persons = centroid_tracker.update(person_bboxes, obj_type="person")
-        filtered_umbrellas = centroid_tracker.update(umbrella_bboxes, obj_type="umbrella")
+        if config.enable_composite_objects:
+            # Update composite objects first to claim their detections
+            used_person_indices, used_umbrella_indices = centroid_tracker.update_composite_objects(person_bboxes, umbrella_bboxes)
+
+            # Filter out detections that were used by composite objects
+            remaining_person_bboxes = [bbox for i, bbox in enumerate(person_bboxes) if i not in used_person_indices]
+            remaining_umbrella_bboxes = [bbox for i, bbox in enumerate(umbrella_bboxes) if i not in used_umbrella_indices]
+        else:
+            # No composite objects, use all detections
+            remaining_person_bboxes = person_bboxes
+            remaining_umbrella_bboxes = umbrella_bboxes
+
+        # Update trackers with remaining detections
+        filtered_persons = centroid_tracker.update(remaining_person_bboxes, obj_type="person")
+        filtered_umbrellas = centroid_tracker.update(remaining_umbrella_bboxes, obj_type="umbrella")
 
         correlations = centroid_tracker.correlate_objects(config.angle_offset, config.distance_offset)
+
+        # Handle composite object logic if enabled
+        if config.enable_composite_objects:
+            # Update stable correlations and create composite objects
+            centroid_tracker.update_stable_correlations(correlations)
+            
+            # Check for composite dissolution
+            centroid_tracker.check_composite_dissolution()
+            
+            # Get composite objects
+            filtered_composites = centroid_tracker.filter_by_type("person-with-umbrella")
+        else:
+            filtered_composites = {}
 
         delta, total, total_down, total_up = handle_tracked_objects(config, delta, height, total, total_down, total_up,
                                                                     centroid_tracker.objects, config.coords_left_line)
@@ -120,7 +145,7 @@ def main():
 
         # Draw results on the frame
         frame = draw_on_frame(resized_frame, filtered_persons, filtered_umbrellas, correlations,
-                              width, height, info_status, info_total, config.coords_left_line)
+                              width, height, info_status, info_total, config.coords_left_line, filtered_composites)
 
         if config.enable_api and (time.time() - api_time) > config.api_interval:
             with ThreadPoolExecutor(max_workers=4) as executor:

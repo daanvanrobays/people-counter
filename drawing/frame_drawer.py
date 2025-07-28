@@ -4,6 +4,7 @@ import numpy as np
 # --- Configuration for Drawing ---
 PERSON_COLOR = (0, 255, 0)       # Green
 UMBRELLA_COLOR = (255, 0, 0)     # Blue
+COMPOSITE_COLOR = (0, 255, 255)  # Yellow
 CORRELATION_COLOR = (255, 255, 255) # White
 INFO_PANEL_COLOR = (0, 0, 0)      # Black
 TEXT_COLOR = (255, 255, 255)    # White
@@ -41,7 +42,7 @@ def _draw_info_panel(frame, width, height, info_status, info_total):
 
 
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
-                  info_total, coords_left):
+                  info_total, coords_left, tracked_composites=None):
     """Main function to draw all visual elements onto the frame."""
     # Draw the tracking lines
     cv2.line(resized_frame, (0, height // 2), (width, height // 2), (0, 0, 255), 1)
@@ -61,6 +62,11 @@ def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlation
     # Draw tracked umbrellas
     for obj_id, data in tracked_umbrellas.items():
         _draw_tracked_object(resized_frame, obj_id, data, "U", UMBRELLA_COLOR)
+
+    # Draw composite objects (person-with-umbrella)
+    if tracked_composites:
+        for obj_id, data in tracked_composites.items():
+            _draw_tracked_object(resized_frame, obj_id, data, "C", COMPOSITE_COLOR)
 
     # Draw the information panel
     _draw_info_panel(resized_frame, width, height, info_status, info_total)
