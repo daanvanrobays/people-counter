@@ -165,6 +165,7 @@ class CentroidTracker:
                           distance_threshold: float = 80.0) -> List[Tuple[int, float, int, float]]:
         """
         Correlate detected umbrellas with detected persons based on proximity and vertical angle constraint.
+        Uses dynamic scoring based on distance and angle proximity.
 
         :param angle_offset: Maximum angle offset from the vertical line to consider (for both north and south).
         :param distance_threshold: Maximum distance to consider for correlation.
@@ -176,24 +177,34 @@ class CentroidTracker:
         for person_id, person_data in persons.items():
             for umbrella_id, umbrella_data in umbrellas.items():
                 distance = np.linalg.norm(np.array(person_data["centroid"]) - np.array(umbrella_data["centroid"]))
+                
                 if distance < distance_threshold:
                     angle = angle_from_vertical(person_data['centroid'], umbrella_data['centroid'])
                     if angle <= angle_offset:
-                        # Increase score if within threshold distance and angle
-                        score_increment = 0.02
+                        # Dynamic score increment: inversely proportional to distance and angle
+                        # Normalize distance (0-1, where 1 is closest)
+                        distance_factor = max(0, 1 - (distance / distance_threshold))
+                        # Normalize angle (0-1, where 1 is most vertical)  
+                        angle_factor = max(0, 1 - (angle / angle_offset))
+                        
+                        # Combined score increment (0.01 to 0.05 range)
+                        score_increment = 0.01 + (0.04 * distance_factor * angle_factor)
+                        
                         update_score(person_data, umbrella_id, score_increment)
                         update_score(umbrella_data, person_id, score_increment)
 
                         correlations.append((person_id, person_data['correlations'][umbrella_id],
                                              umbrella_id, umbrella_data['correlations'][person_id]))
                     else:
-                        # Decrease score if angle is beyond threshold
-                        score_decrement = -0.05
+                        # Gradual score decay for angle misalignment
+                        angle_penalty = min(0.03, (angle - angle_offset) / angle_offset * 0.03)
+                        score_decrement = -angle_penalty
                         update_score(person_data, umbrella_id, score_decrement)
                         update_score(umbrella_data, person_id, score_decrement)
                 else:
-                    # Decrease score if distance is beyond threshold
-                    score_decrement = -0.05
+                    # Gradual score decay for distance - less harsh for brief separations
+                    distance_penalty = min(0.02, (distance - distance_threshold) / distance_threshold * 0.02)
+                    score_decrement = -distance_penalty
                     update_score(person_data, umbrella_id, score_decrement)
                     update_score(umbrella_data, person_id, score_decrement)
 
