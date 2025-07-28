@@ -42,3 +42,4 @@ thop  # FLOPs computation
 filterpy
 scikit-learn
 lap
+ultralytics

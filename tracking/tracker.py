@@ -50,9 +50,9 @@ def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_o
                 log_event(f"ENTER {data['type']} {object_id}", total_down, delta, direction, height,
                           centroid[1], data['initialPositionUp'])
                 data['initialPositionUp'] = not data['initialPositionUp']
-
             elif direction > 0 and centroid[0] > coords_left and centroid[1] > height // 2 and data['initialPositionUp']:
                 data['initialPositionUp'] = not data['initialPositionUp']
+
             total = total_down - total_up
 
     return delta, total, total_down, total_up

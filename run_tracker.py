@@ -1,7 +1,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+from ultralytics import YOLO
 
-import torch
 import cv2
 import logging
 import time
@@ -18,10 +18,9 @@ log = logging.getLogger(__name__)
 
 
 def load_model():
-    """Load the YOLOv7 model with GPU support if available."""
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    log.info(f'cuda={torch.cuda.is_available()}: {device}')
-    return torch.hub.load('WongKinYiu/yolov7', 'custom', 'yolov7.pt', source='github').to(device), device
+    """Load the YOLOv8 model."""
+    model = YOLO("yolov8m.pt")
+    return model, None  # device is handled by ultralytics
 
 
 def parse_arguments():
@@ -46,18 +45,36 @@ def main():
     delta = 0
     total = 0
 
-    # Load model and classes
-    model, device = load_model()
+    # Load model
+    model, _ = load_model()
 
-    # Initialize the video stream
-    cap = ThreadingClass(config.stream_url)
+    # Initialize the video stream based on the source
+    is_network_stream = isinstance(config.stream_url, str) and \
+                        (config.stream_url.startswith("rtsp://") or
+                         config.stream_url.startswith("http://") or
+                         config.stream_url.startswith("https://"))
+
+    if is_network_stream:
+        log.info("Using threaded video stream for network source.")
+        cap = ThreadingClass(config.stream_url)
+    else:
+        log.info("Using direct video capture for local source.")
+        cap = cv2.VideoCapture(config.stream_url)
 
     # Initialize CentroidTracker
     centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
 
     # Loop over the frames from the video stream
     while True:
-        frame = cap.read()
+        if is_network_stream:
+            frame = cap.read()
+        else:
+            ret, frame = cap.read()
+            if not ret:
+                break  # End of video file
+
+        if frame is None:
+            break
 
         if width is None or height is None:
             (height, width) = frame.shape[:2]
@@ -69,10 +86,17 @@ def main():
         resized_frame = cv2.resize(frame, (640, 360))
 
         # Perform inference
-        results = model(resized_frame, size=640)  # Specify size for faster inference
+        results = model(resized_frame)
 
         # Process results
-        detections = results.xyxy[0].cpu().numpy()  # Move to CPU and convert to numpy array
+        detections = []
+        for result in results:
+            boxes = result.boxes.cpu().numpy()
+            for box in boxes:
+                (x1, y1, x2, y2) = box.xyxy[0]
+                conf = box.conf[0]
+                cls = int(box.cls[0])
+                detections.append([x1, y1, x2, y2, conf, cls])
 
         # Class IDs: 0 for person, 25 for umbrella
         person_detections = filter_detections(detections, target_class=0)

@@ -55,6 +55,18 @@ def draw_correlations(frame, correlations, tracked_persons, tracked_umbrellas):
     return frame
 
 
+def draw_raw_detections(frame, detections, target_class_id):
+    """Draw raw bounding boxes and confidence scores for a specific class."""
+    for det in detections:
+        x1, y1, x2, y2, conf, cls_id = det
+        if int(cls_id) == target_class_id:
+            label = f"{conf:.2f}"
+            color = (0, 165, 255)  # Orange for raw detections
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 1)
+            cv2.putText(frame, label, (int(x1), int(y1) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
+    return frame
+
+
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
                   info_total, coords_left):
     frame = draw_boxes(resized_frame, tracked_persons, "P")
