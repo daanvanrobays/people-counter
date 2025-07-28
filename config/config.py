@@ -11,6 +11,7 @@ class Config:
     device: str = "default"
     stream_url: str = ""
     coords_left_line: int = 640
+    verbose: bool = False
 
 
 def get_config(config_type: int = 0):
@@ -22,8 +23,8 @@ def get_config(config_type: int = 0):
             angle_offset=45.0,
             distance_offset=80.0,
             device="Kamerotski",
-            stream_url="",
-            coords_left_line=530,
+            stream_url="test/umbrella-2.mp4",
+            coords_left_line=640,
         )
     else:
         return Config(
@@ -34,5 +35,5 @@ def get_config(config_type: int = 0):
             distance_offset=80.0,
             device="Henk",
             stream_url="",
-            coords_left_line=370,
+            coords_left_line=640,
         )

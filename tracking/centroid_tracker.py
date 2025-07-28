@@ -45,6 +45,13 @@ class CentroidTracker:
 
     def register(self, centroid, obj_type):
         """Register a new object with a given centroid."""
+        if self.next_object_id > 99:
+            self.next_object_id = 0
+
+        # To prevent overwriting an existing object, find the next available ID
+        while self.next_object_id in self.objects:
+            self.next_object_id += 1
+            
         self.objects[self.next_object_id] = {
             'centroid': centroid, 'centroids': [centroid], 'type': obj_type, 'correlations': OrderedDict()
         }

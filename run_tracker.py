@@ -86,7 +86,7 @@ def main():
         resized_frame = cv2.resize(frame, (640, 360))
 
         # Perform inference
-        results = model(resized_frame)
+        results = model(resized_frame, verbose=False)
 
         # Process results
         detections = []
@@ -112,7 +112,7 @@ def main():
 
         correlations = centroid_tracker.correlate_objects(config.angle_offset, config.distance_offset)
 
-        delta, total, total_down, total_up = handle_tracked_objects(delta, height, total, total_down, total_up,
+        delta, total, total_down, total_up = handle_tracked_objects(config, delta, height, total, total_down, total_up,
                                                                     centroid_tracker.objects, config.coords_left_line)
 
         info_status = [("Exit", total_up), ("Enter", total_down), ("Delta", delta)]

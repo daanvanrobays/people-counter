@@ -1,76 +1,68 @@
 import cv2
+import numpy as np
+
+# --- Configuration for Drawing ---
+PERSON_COLOR = (0, 255, 0)       # Green
+UMBRELLA_COLOR = (255, 0, 0)     # Blue
+CORRELATION_COLOR = (255, 255, 255) # White
+INFO_PANEL_COLOR = (0, 0, 0)      # Black
+TEXT_COLOR = (255, 255, 255)    # White
 
 
-def draw_boxes_model(frame, detections, classes, target_classes):
-    """Draw bounding boxes on the frame."""
-    for det in detections:
-        x1, y1, x2, y2, conf, cls_id = det
-        if int(cls_id) in target_classes:
-            # label = f"{classes[int(cls_id)]} {conf:.2f}"
-            color = (255, 255, 255)  # Green color for bounding box
-            cv2.rectangle(frame, (int(x1)-5, int(y1)-5), (int(x2)-5, int(y2)-5), color, 2)
-            # cv2.putText(frame, label, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-    return frame
+def _draw_tracked_object(frame, object_id, data, label, color):
+    """Helper function to draw a single tracked object."""
+    centroid = data["centroid"]
+    # Draw a small dot at the centroid
+    cv2.circle(frame, centroid, 3, color, -1)
+    # Draw the object ID label
+    cv2.putText(frame, f"{label}{object_id}", (centroid[0] + 10, centroid[1] + 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
 
-def draw_info(frame, width, height, info_status, info_total, coords_left):
-    cv2.line(frame, (0, height // 2), (width, height // 2), (0, 0, 255), 1)
-    cv2.line(frame, (coords_left, 0), (coords_left, height), (0, 0, 255), 1)
-    for (i, (k, v)) in enumerate(info_status):
-        text = "{}: {}".format(k, v)
-        cv2.putText(frame, text, (10, height - ((i * 20) + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    # for (i, (k, v)) in enumerate(info_total):
-    #     text = "{}: {}".format(k, v)
-    #     cv2.putText(frame, text, (265, height - ((i * 20) + 60)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    return frame
+def _draw_info_panel(frame, width, height, info_status, info_total):
+    """Draws a semi-transparent panel with tracking information."""
+    panel_height = 100
+    # Create a semi-transparent black rectangle
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (0, height - panel_height), (width, height), INFO_PANEL_COLOR, -1)
+    alpha = 0.6  # Transparency factor
+    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
+    # Display status information
+    y_pos = height - panel_height + 30
+    for key, value in info_status:
+        text = f"{key}: {value}"
+        cv2.putText(frame, text, (15, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.7, TEXT_COLOR, 2)
+        y_pos += 30
 
-def draw_tracking_info(frame, object_id, centroid):
-    text = f"ID {object_id}"
-    cv2.putText(frame, text, (centroid[0], centroid[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
-    cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 0, 0), -1)
-
-
-def draw_boxes(frame, tracked_objects, label):
-    """Draw bounding boxes and labels on the frame."""
-    for obj_id, data in tracked_objects.items():
-        color = (0, 255, 0) if label == "P" else (0, 0, 255)
-        cv2.circle(frame, data["centroid"], 3, color, -1)
-        cv2.putText(frame, f"{label}{obj_id}", (data["centroid"][0] - 10, data["centroid"][1] - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
-    return frame
-
-
-def draw_correlations(frame, correlations, tracked_persons, tracked_umbrellas):
-    """Draw lines between correlated objects."""
-    color = (255, 0, 0)
-    for person_id, person_score, umbrella_id, umbrella_score in correlations:
-        person_data = tracked_persons[person_id]
-        umbrella_data = tracked_umbrellas[umbrella_id]
-        cv2.line(frame, person_data["centroid"], umbrella_data["centroid"], color, 2)
-        cv2.putText(frame, "{:.2f}".format(person_score), person_data["centroid"],
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.putText(frame, "{:.2f}".format(umbrella_score), umbrella_data["centroid"],
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-    return frame
-
-
-def draw_raw_detections(frame, detections, target_class_id):
-    """Draw raw bounding boxes and confidence scores for a specific class."""
-    for det in detections:
-        x1, y1, x2, y2, conf, cls_id = det
-        if int(cls_id) == target_class_id:
-            label = f"{conf:.2f}"
-            color = (0, 165, 255)  # Orange for raw detections
-            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 1)
-            cv2.putText(frame, label, (int(x1), int(y1) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
-    return frame
+    # Display total count
+    total_text = f"{info_total[0][0]}: {info_total[0][1]}"
+    cv2.putText(frame, total_text, (width - 250, height - 35), cv2.FONT_HERSHEY_SIMPLEX, 1, TEXT_COLOR, 2)
 
 
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
                   info_total, coords_left):
-    frame = draw_boxes(resized_frame, tracked_persons, "P")
-    frame = draw_boxes(resized_frame, tracked_umbrellas, "U")
-    frame = draw_correlations(resized_frame, correlations, tracked_persons, tracked_umbrellas)
-    frame = draw_info(resized_frame, width, height, info_status, info_total, coords_left)
-    return frame
+    """Main function to draw all visual elements onto the frame."""
+    # Draw the tracking lines
+    cv2.line(resized_frame, (0, height // 2), (width, height // 2), (0, 0, 255), 1)
+    cv2.line(resized_frame, (coords_left, 0), (coords_left, height), (0, 0, 255), 1)
+
+    # Draw correlations first, so they are in the background
+    for person_id, _, umbrella_id, _ in correlations:
+        if person_id in tracked_persons and umbrella_id in tracked_umbrellas:
+            person_centroid = tracked_persons[person_id]["centroid"]
+            umbrella_centroid = tracked_umbrellas[umbrella_id]["centroid"]
+            cv2.line(resized_frame, person_centroid, umbrella_centroid, CORRELATION_COLOR, 1)
+
+    # Draw tracked persons
+    for obj_id, data in tracked_persons.items():
+        _draw_tracked_object(resized_frame, obj_id, data, "P", PERSON_COLOR)
+
+    # Draw tracked umbrellas
+    for obj_id, data in tracked_umbrellas.items():
+        _draw_tracked_object(resized_frame, obj_id, data, "U", UMBRELLA_COLOR)
+
+    # Draw the information panel
+    _draw_info_panel(resized_frame, width, height, info_status, info_total)
+
+    return resized_frame
