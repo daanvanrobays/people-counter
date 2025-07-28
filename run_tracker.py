@@ -102,13 +102,13 @@ def main():
         person_detections = filter_detections(detections, target_class=0)
         umbrella_detections = filter_detections(detections, target_class=25)
 
-        # Convert bounding boxes to centroids
-        person_centroids = [det[:4] for det in person_detections]
-        umbrella_centroids = [det[:4] for det in umbrella_detections]
+        # Use full bounding boxes for tracking (includes IoU calculation)
+        person_bboxes = [det[:4] for det in person_detections]
+        umbrella_bboxes = [det[:4] for det in umbrella_detections]
 
         # Update trackers
-        filtered_persons = centroid_tracker.update(person_centroids, obj_type="person")
-        filtered_umbrellas = centroid_tracker.update(umbrella_centroids, obj_type="umbrella")
+        filtered_persons = centroid_tracker.update(person_bboxes, obj_type="person")
+        filtered_umbrellas = centroid_tracker.update(umbrella_bboxes, obj_type="umbrella")
 
         correlations = centroid_tracker.correlate_objects(config.angle_offset, config.distance_offset)
 

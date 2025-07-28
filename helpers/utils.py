@@ -39,3 +39,41 @@ def angle_from_vertical(p1: Tuple[int, int], p2: Tuple[int, int]) -> float:
     angle = np.arctan2(dx, dy) * (180 / np.pi)  # Angle in degrees
     angle = 180 - np.abs(angle)  # Ensure angle is positive
     return angle
+
+
+def calculate_iou(box1: Tuple[int, int, int, int], box2: Tuple[int, int, int, int]) -> float:
+    """
+    Calculate Intersection over Union (IoU) between two bounding boxes.
+    
+    :param box1: First bounding box as (x1, y1, x2, y2)
+    :param box2: Second bounding box as (x1, y1, x2, y2)
+    :return: IoU value between 0.0 and 1.0
+    """
+    x1_1, y1_1, x2_1, y2_1 = box1
+    x1_2, y1_2, x2_2, y2_2 = box2
+    
+    # Calculate intersection coordinates
+    x1_inter = max(x1_1, x1_2)
+    y1_inter = max(y1_1, y1_2)
+    x2_inter = min(x2_1, x2_2)
+    y2_inter = min(y2_1, y2_2)
+    
+    # Check if there's an intersection
+    if x2_inter <= x1_inter or y2_inter <= y1_inter:
+        return 0.0
+    
+    # Calculate intersection area
+    intersection_area = (x2_inter - x1_inter) * (y2_inter - y1_inter)
+    
+    # Calculate areas of both boxes
+    area1 = (x2_1 - x1_1) * (y2_1 - y1_1)
+    area2 = (x2_2 - x1_2) * (y2_2 - y1_2)
+    
+    # Calculate union area
+    union_area = area1 + area2 - intersection_area
+    
+    # Avoid division by zero
+    if union_area == 0:
+        return 0.0
+    
+    return intersection_area / union_area
