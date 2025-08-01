@@ -5,13 +5,6 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 
-def log_event(event_type, count, delta, direction, height, centroid, initial_position):
-    date_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log.info(
-        f"{date_time}: {event_type} - count: {count}, delta: {delta}, dir: {direction}, height: {height}, "
-        f"centroid: {centroid}, position: {initial_position}")
-
-
 def filter_detections(detections, target_class, confidence_threshold=0.6):
     filtered_detections = [
         tuple(map(int, det[:4])) for det in detections
@@ -19,8 +12,7 @@ def filter_detections(detections, target_class, confidence_threshold=0.6):
     ]
     return filtered_detections
 
-
-def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_objects, coords_left):
+def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_objects, coords_left, debug_logger=None):
     # Convert filtered detections to list of bounding boxes
     # Update tracking with bounding boxes
     for (object_id, data) in tracked_objects.items():
@@ -41,8 +33,9 @@ def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_o
             if direction < 0 and centroid[0] < coords_left and centroid[1] < height // 2 and not data['initialPositionUp']:
                 total_up += 1
                 delta -= 1
-                log_event(f"EXIT {data['type']} {object_id}", total_up, delta, direction, height,
-                          centroid[1], data['initialPositionUp'])
+                log_message = f"EXIT {data['type']} {object_id}"
+                if debug_logger:
+                    debug_logger.log_info(log_message)
                 data['initialPositionUp'] = not data['initialPositionUp']
             elif direction < 0 and centroid[0] > coords_left and centroid[1] < height // 2 and not data['initialPositionUp']:
                 data['initialPositionUp'] = not data['initialPositionUp']
@@ -50,8 +43,9 @@ def handle_tracked_objects(delta, height, total, total_down, total_up, tracked_o
             elif direction > 0 and centroid[0] < coords_left and centroid[1] > height // 2 and data['initialPositionUp']:
                 total_down += 1
                 delta += 1
-                log_event(f"ENTER {data['type']} {object_id}", total_down, delta, direction, height,
-                          centroid[1], data['initialPositionUp'])
+                log_message = f"ENTER {data['type']} {object_id}"
+                if debug_logger:
+                    debug_logger.log_info(log_message)
                 data['initialPositionUp'] = not data['initialPositionUp']
             elif direction > 0 and centroid[0] > coords_left and centroid[1] > height // 2 and data['initialPositionUp']:
                 data['initialPositionUp'] = not data['initialPositionUp']
