@@ -10,6 +10,7 @@ from config.config import get_config
 from drawing.frame_drawer import draw_on_frame
 from helpers.thread import ThreadingClass
 from tracking.centroid_tracker import CentroidTracker
+from tracking.kalman_tracker import AdvancedTracker
 from tracking.tracker import filter_detections, handle_tracked_objects
 from api.api import post_api
 
@@ -61,8 +62,15 @@ def main():
         log.info("Using direct video capture for local source.")
         cap = cv2.VideoCapture(config.stream_url)
 
-    # Initialize CentroidTracker
-    centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
+    # Initialize tracker based on configuration
+    if config.tracking_algorithm == "kalman":
+        tracker = AdvancedTracker(max_disappeared=30, max_distance=50, 
+                                 composite_threshold=0.7, composite_frames=10)
+        log.info("Using Kalman filter-based tracking")
+    else:
+        tracker = CentroidTracker(max_disappeared=50, max_distance=50, 
+                                 composite_threshold=0.7, composite_frames=10)
+        log.info("Using centroid-based tracking")
 
     # Loop over the frames from the video stream
     while True:
@@ -108,7 +116,7 @@ def main():
 
         if config.enable_composite_objects:
             # Update composite objects first to claim their detections
-            used_person_indices, used_umbrella_indices = centroid_tracker.update_composite_objects(person_bboxes, umbrella_bboxes)
+            used_person_indices, used_umbrella_indices = tracker.update_composite_objects(person_bboxes, umbrella_bboxes)
 
             # Filter out detections that were used by composite objects
             remaining_person_bboxes = [bbox for i, bbox in enumerate(person_bboxes) if i not in used_person_indices]
@@ -119,26 +127,46 @@ def main():
             remaining_umbrella_bboxes = umbrella_bboxes
 
         # Update trackers with remaining detections
-        filtered_persons = centroid_tracker.update(remaining_person_bboxes, obj_type="person")
-        filtered_umbrellas = centroid_tracker.update(remaining_umbrella_bboxes, obj_type="umbrella")
+        filtered_persons = tracker.update(remaining_person_bboxes, obj_type="person")
+        filtered_umbrellas = tracker.update(remaining_umbrella_bboxes, obj_type="umbrella")
 
-        correlations = centroid_tracker.correlate_objects(config.angle_offset, config.distance_offset)
+        correlations = tracker.correlate_objects(config.angle_offset, config.distance_offset)
 
         # Handle composite object logic if enabled
         if config.enable_composite_objects:
             # Update stable correlations and create composite objects
-            centroid_tracker.update_stable_correlations(correlations)
+            tracker.update_stable_correlations(correlations)
             
             # Check for composite dissolution
-            centroid_tracker.check_composite_dissolution()
+            tracker.check_composite_dissolution()
             
             # Get composite objects
-            filtered_composites = centroid_tracker.filter_by_type("person-with-umbrella")
+            filtered_composites = tracker.filter_by_type("person-with-umbrella")
         else:
             filtered_composites = {}
 
+        # Get all tracked objects for counting
+        if config.tracking_algorithm == "kalman":
+            all_objects = {}
+            for t in tracker.trackers:
+                if t.time_since_update < 1 and (t.hit_streak >= tracker.min_hits or tracker.frame_count <= tracker.min_hits):
+                    bbox = t.get_state()[0]
+                    centroid = t.get_centroid()
+                    all_objects[t.id] = {
+                        'centroid': centroid,
+                        'centroids': [centroid],
+                        'bbox': tuple(map(int, bbox)),
+                        'bboxes': [tuple(map(int, bbox))],
+                        'type': t.obj_type,
+                        'correlations': t.correlations,
+                        'is_composite': t.is_composite,
+                        'component_ids': t.component_ids
+                    }
+        else:
+            all_objects = tracker.objects
+
         delta, total, total_down, total_up = handle_tracked_objects(config, delta, height, total, total_down, total_up,
-                                                                    centroid_tracker.objects, config.coords_left_line)
+                                                                    all_objects, config.coords_left_line)
 
         info_status = [("Exit", total_up), ("Enter", total_down), ("Delta", delta)]
         info_total = [("Total people inside", total)]
