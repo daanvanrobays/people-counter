@@ -50,14 +50,14 @@ def main():
     model, device = load_model()
 
     # Initialize the video stream
-    cap = ThreadingClass(config.stream_url)
+    cap = cv2.VideoCapture(config.stream_url)
 
     # Initialize CentroidTracker
     centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
 
     # Loop over the frames from the video stream
     while True:
-        frame = cap.read()
+        ret, frame = cap.read()
 
         if width is None or height is None:
             (height, width) = frame.shape[:2]
@@ -93,14 +93,14 @@ def main():
         correlations = centroid_tracker.correlate_objects(config.angle_offset, config.distance_offset)
 
         delta, total, total_down, total_up = handle_tracked_objects(delta, height, total, total_down, total_up,
-                                                                    centroid_tracker.objects, config.coords_left_line)
+                                                                    centroid_tracker.objects, config.coords_left_line, config.coords_right_line)
 
         info_status = [("Exit", total_up), ("Enter", total_down), ("Delta", delta)]
         info_total = [("Total people inside", total)]
 
         # Draw results on the frame
         frame = draw_on_frame(resized_frame, filtered_persons, filtered_umbrellas, correlations,
-                              width, height, info_status, info_total, config.coords_left_line)
+                              width, height, info_status, info_total, config.coords_left_line, config.coords_right_line)
 
         if config.enable_api and (time.time() - api_time) > config.api_interval:
             with ThreadPoolExecutor(max_workers=4) as executor:

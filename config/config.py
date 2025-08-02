@@ -10,7 +10,8 @@ class Config:
     distance_offset: float = 85.0
     device: str = "default"
     stream_url: str = ""
-    coords_left_line: int = 640
+    coords_left_line: int = 0
+    coords_right_line: int = 640
 
 
 def get_config(input):
@@ -24,7 +25,8 @@ def get_config(input):
             distance_offset=80.0,
             device="Kamerotski",
             stream_url="rtsp://admin:PASSWORD@192.168.1.167:554/cam/realmonitor?channel=1&subtype=0",
-            coords_left_line=480
+            coords_left_line=100,
+            coords_right_line=480
         )
     else:
         return Config(
@@ -35,5 +37,6 @@ def get_config(input):
             distance_offset=85.0,
             device="Henk",
             stream_url="rtsp://admin:PASSWORD@192.168.1.49:554/cam/realmonitor?channel=1&subtype=0",
-            coords_left_line=395
+            coords_left_line=0,
+            coords_right_line=395
         )
