@@ -36,6 +36,7 @@ class TrackerManager:
                 'device': config.device,
                 'stream_url': config.stream_url,
                 'coords_left_line': config.coords_left_line,
+                'coords_right_line': config.coords_right_line,
                 'angle_offset': config.angle_offset,
                 'distance_offset': config.distance_offset,
                 'debug_mode': False
@@ -102,7 +103,7 @@ class TrackerManager:
             
             # Start the process, redirecting stderr to a pipe
             process = subprocess.Popen([
-                "python", "yolov7_video.py", "-i", str(config_id)
+                "python", "yolov8_video.py", "-i", str(config_id)
             ], cwd=os.getcwd(), stderr=subprocess.PIPE)
             
             self.processes[config_id] = process
@@ -156,12 +157,15 @@ class TrackerManager:
                 return {"success": False, "message": str(e)}
         return {"success": True, "message": "No log file to clear"}
     
-    def save_temp_config(self, config_id):
+    def save_temp_config(self, config_id, config_updated=False):
         """Save temporary config file"""
         config = self.configs[config_id].copy()
         
         # Remove debug_mode and test_video from the saved config since they're UI-only
         config.pop('test_video', None)
+        
+        # Add config_updated flag
+        config['config_updated'] = config_updated
         
         # Save to temporary config file
         os.makedirs("config", exist_ok=True)
@@ -173,8 +177,8 @@ class TrackerManager:
     def update_config(self, config_id, new_config):
         """Update configuration and save to temp file"""
         self.configs[config_id].update(new_config)
-        # Important: Save to temp file so running tracker can detect the change
-        self.save_temp_config(config_id)
+        # Important: Save to temp file with flag so running tracker can detect the change
+        self.save_temp_config(config_id, config_updated=True)
     
     def start_video_stream(self, config_id):
         """Start video stream for preview"""

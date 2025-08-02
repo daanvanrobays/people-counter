@@ -100,15 +100,19 @@
             <h4>⚙️ Tracker Configuration</h4>
             
             <form class="config-form">
+                <div class="form-group">
+                    <label for="device-{{ tracker_id }}">Device Name</label>
+                    <input type="text" id="device-{{ tracker_id }}" value="{{ config.device }}" placeholder="Device name">
+                </div>
+                
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="device-{{ tracker_id }}">Device Name</label>
-                        <input type="text" id="device-{{ tracker_id }}" value="{{ config.device }}" placeholder="Device name">
-                    </div>
-                    
-                    <div class="form-group">
                         <label for="coords-left-line-{{ tracker_id }}">Left Line Coordinate</label>
-                        <input type="number" id="coords-left-line-{{ tracker_id }}" value="{{ config.coords_left_line }}" min="50" max="1000" step="1">
+                        <input type="number" id="coords-left-line-{{ tracker_id }}" value="{{ config.coords_left_line }}" min="0" max="1000" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="coords-right-line-{{ tracker_id }}">Right Line Coordinate</label>
+                        <input type="number" id="coords-right-line-{{ tracker_id }}" value="{{ config.coords_right_line }}" min="0" max="1000" step="1">
                     </div>
                 </div>
                 

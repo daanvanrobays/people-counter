@@ -16,6 +16,7 @@ class VideoStreamer:
         self.fps_counters = {}
         self.stream_health = {}
         self.capture_threads = {}
+        self.stop_flags = {}
         
     def start_video_capture(self, config_id, stream_url):
         """Start video capture for a specific config"""
@@ -58,6 +59,7 @@ class VideoStreamer:
             self.frame_buffers[config_id] = None
             self.fps_counters[config_id] = {"count": 0, "start_time": time.time(), "fps": 0.0}
             self.stream_health[config_id] = {"status": "healthy", "message": "Stream active"}
+            self.stop_flags[config_id] = False
             
             # Start capture thread
             thread = threading.Thread(target=self._capture_frames, args=(config_id,))
@@ -75,6 +77,9 @@ class VideoStreamer:
     
     def stop_video_capture(self, config_id):
         """Stop video capture for a specific config"""
+        # Set stop flag first to signal the thread to stop
+        self.stop_flags[config_id] = True
+        
         if config_id in self.video_captures:
             cap = self.video_captures.pop(config_id)
             cap.release()
@@ -83,6 +88,7 @@ class VideoStreamer:
         self.fps_counters.pop(config_id, None)
         self.stream_health.pop(config_id, None)
         self.capture_threads.pop(config_id, None)
+        self.stop_flags.pop(config_id, None)
     
     def _capture_frames(self, config_id):
         """Continuously capture frames in a separate thread"""
@@ -109,7 +115,11 @@ class VideoStreamer:
         
         print(f"Config {config_id}: Video FPS={video_fps}, Target FPS={target_fps}, Frame count={frame_count}")
         
-        while config_id in self.video_captures:
+        while config_id in self.video_captures and not self.stop_flags.get(config_id, False):
+            # Check stop flag again at the beginning of each iteration
+            if self.stop_flags.get(config_id, False):
+                break
+                
             frame_start_time = time.time()
             
             try:
@@ -132,8 +142,8 @@ class VideoStreamer:
                 else:
                     consecutive_failures += 1
                     
-                    # For video files, try to loop back to the beginning
-                    if is_video_file:
+                    # For video files, try to loop back to the beginning (if not stopped)
+                    if is_video_file and not self.stop_flags.get(config_id, False):
                         current_pos = cap.get(cv2.CAP_PROP_POS_FRAMES)
                         if current_pos >= frame_count - 1:  # Near or at end
                             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to beginning

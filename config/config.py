@@ -26,34 +26,35 @@ def get_config(input):
         try:
             with open(temp_config_file, 'r') as f:
                 config_data = json.load(f)
+            # Filter out UI-specific fields that the Config class doesn't know about
+            config_data.pop('config_updated', None)
             return Config(**config_data)
         except (json.JSONDecodeError, TypeError) as e:
             print(f"Error loading temp config: {e}, falling back to default")
 
-    def get_config(config_type: int = 0):
-        if config_type == 0:
-            return Config(
-                enable_api=False,
-                api_url="",
-                api_interval=60,
-                angle_offset=45.0,
-                distance_offset=80.0,
-                device="Kamerotski",
-                stream_url="test/escalator.webm",
-                coords_left_line=50,
-                coords_right_line=480,
-                enable_composite_objects=False,
-            )
-        else:
-            return Config(
-                enable_api=False,
-                api_url="",
-                api_interval=60,
-                angle_offset=45.0,
-                distance_offset=80.0,
-                device="Henk",
-                stream_url="test/escalator.webm",
-                coords_left_line=0,
-                coords_right_line=395,
-                enable_composite_objects=False,
+    if input == 0:
+        return Config(
+            enable_api=False,
+            api_url="",
+            api_interval=60,
+            angle_offset=45.0,
+            distance_offset=80.0,
+            device="Kamerotski",
+            stream_url="test/escalator.webm",
+            coords_left_line=50,
+            coords_right_line=480,
+            enable_composite_objects=False,
+        )
+    else:
+        return Config(
+            enable_api=False,
+            api_url="",
+            api_interval=60,
+            angle_offset=45.0,
+            distance_offset=80.0,
+            device="Henk",
+            stream_url="test/escalator.webm",
+            coords_left_line=0,
+            coords_right_line=395,
+            enable_composite_objects=False,
         )

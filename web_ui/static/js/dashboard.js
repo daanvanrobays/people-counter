@@ -28,6 +28,7 @@ function applyConfig(configId) {
     const streamUrl = document.getElementById(`stream-url-${configId}`).value;
     const device = document.getElementById(`device-${configId}`).value;
     const coordsLeftLine = parseInt(document.getElementById(`coords-left-line-${configId}`).value);
+    const coordsRightLine = parseInt(document.getElementById(`coords-right-line-${configId}`).value);
     const enableApi = document.getElementById(`enable-api-${configId}`).checked;
     const apiUrl = document.getElementById(`api-url-${configId}`).value;
     const apiInterval = parseInt(document.getElementById(`api-interval-${configId}`).value);
@@ -37,6 +38,7 @@ function applyConfig(configId) {
         stream_url: streamUrl,
         device: device,
         coords_left_line: coordsLeftLine,
+        coords_right_line: coordsRightLine,
         enable_api: enableApi,
         api_url: apiUrl,
         api_interval: apiInterval

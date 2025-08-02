@@ -1,4 +1,5 @@
 import argparse
+import os
 from concurrent.futures import ThreadPoolExecutor
 from ultralytics import YOLO
 
@@ -32,9 +33,40 @@ def parse_arguments():
     return args
 
 
+def check_config_update(config_id):
+    """Check if config file has been updated using boolean flag"""
+    temp_config_file = f"config/temp_config_{config_id}.json"
+    
+    try:
+        if os.path.exists(temp_config_file):
+            # Read config file to check for update flag
+            import json
+            with open(temp_config_file, 'r') as f:
+                config_data = json.load(f)
+            
+            if config_data.get('config_updated', False):
+                log.info("Config file updated, reloading configuration...")
+                new_config = get_config(config_id)
+                
+                # Clear the flag by saving config without it
+                config_data['config_updated'] = False
+                with open(temp_config_file, 'w') as f:
+                    json.dump(config_data, f, indent=2)
+                
+                return new_config
+    except Exception as e:
+        log.warning(f"Error checking config update: {e}")
+    
+    return None
+
+
 def main():
     args = parse_arguments()
-    config = get_config(args["input"])
+    config_id = args["input"]
+    config = get_config(config_id)
+
+    # Initialize config modification tracking
+    last_config_check = time.time()
 
     api_time = time.time() if config.enable_api else None
 
@@ -67,6 +99,21 @@ def main():
 
     # Loop over the frames from the video stream
     while True:
+        # Check for config updates every 0.5 seconds (flag-based checking is fast)
+        current_time = time.time()
+        if current_time - last_config_check > 0.5:
+            updated_config = check_config_update(config_id)
+            if updated_config:
+                # NOTE: Stream URL changes are not applied mid-stream. Requires a restart.
+                config = updated_config
+                log.info("Configuration reloaded", {
+                    "coords_left_line": config.coords_left_line,
+                    "coords_right_line": config.coords_right_line,
+                    "angle_offset": config.angle_offset,
+                    "distance_offset": config.distance_offset,
+                })
+            last_config_check = current_time
+
         if is_network_stream:
             frame = cap.read()
         else:
