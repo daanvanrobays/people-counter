@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block page_subtitle %}Manage multiple tracker instances with live streams or test videos{% endblock %}
+
+{% block content %}
+
+
+<!-- Two Panel Layout -->
+<div class="panel-container">
+    {% set tracker_id = 0 %}
+    {% set tracker_name = 'Entrance' %}
+    {% set config = configs[0] %}
+    {% include '_tracker_panel.html' %}
+
+    {% set tracker_id = 1 %}
+    {% set tracker_name = 'Exit' %}
+    {% set config = configs[1] %}
+    {% include '_tracker_panel.html' %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
