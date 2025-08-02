@@ -20,7 +20,7 @@ def _draw_tracked_object(frame, object_id, data, label, color):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
 
-def _draw_info_panel(frame, width, height, info_status, info_total):
+def _draw_info_panel(frame, width, height, info_status):
     """Draws a semi-transparent panel with tracking information."""
     panel_height = 100
     # Create a semi-transparent black rectangle
@@ -36,13 +36,8 @@ def _draw_info_panel(frame, width, height, info_status, info_total):
         cv2.putText(frame, text, (15, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.7, TEXT_COLOR, 2)
         y_pos += 30
 
-    # Display total count
-    total_text = f"{info_total[0][0]}: {info_total[0][1]}"
-    cv2.putText(frame, total_text, (width - 250, height - 35), cv2.FONT_HERSHEY_SIMPLEX, 1, TEXT_COLOR, 2)
 
-
-def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
-                  info_total, coords_left, coords_right, tracked_composites=None):
+def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status, coords_left, coords_right, tracked_composites=None):
     """Main function to draw all visual elements onto the frame."""
     # Draw the tracking lines
     cv2.line(resized_frame, (0, height // 2), (width, height // 2), (0, 0, 255), 1)
@@ -70,6 +65,6 @@ def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlation
             _draw_tracked_object(resized_frame, obj_id, data, "C", COMPOSITE_COLOR)
 
     # Draw the information panel
-    _draw_info_panel(resized_frame, width, height, info_status, info_total)
+    _draw_info_panel(resized_frame, width, height, info_status)
 
     return resized_frame

@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 def load_model():
     """Load the YOLOv8 model."""
-    model = YOLO("yolov8x.pt")
+    model = YOLO("yolov8m.pt")
     return model, None  # device is handled by ultralytics
 
 
@@ -142,11 +142,10 @@ def main():
                                                                     tracker.objects, config.coords_left_line, config.coords_right_line)
 
         info_status = [("Exit", total_up), ("Enter", total_down), ("Delta", delta)]
-        info_total = [("Total people inside", total)]
 
         # Draw results on the frame
         frame = draw_on_frame(resized_frame, filtered_persons, filtered_umbrellas, correlations,
-                              width, height, info_status, info_total, config.coords_left_line, config.coords_right_line, filtered_composites)
+                              width, height, info_status, config.coords_left_line, config.coords_right_line, filtered_composites)
 
         if config.enable_api and (time.time() - api_time) > config.api_interval:
             with ThreadPoolExecutor(max_workers=4) as executor:
