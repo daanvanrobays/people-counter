@@ -10,7 +10,6 @@ from config.config import get_config
 from drawing.frame_drawer import draw_on_frame
 from helpers.thread import ThreadingClass
 from tracking.centroid_tracker import CentroidTracker
-from tracking.kalman_tracker import AdvancedTracker
 from tracking.tracker import filter_detections, handle_tracked_objects
 from api.api import post_api
 
@@ -20,7 +19,7 @@ log = logging.getLogger(__name__)
 
 def load_model():
     """Load the YOLOv8 model."""
-    model = YOLO("yolov8m.pt")
+    model = YOLO("yolov8x.pt")
     return model, None  # device is handled by ultralytics
 
 
@@ -63,14 +62,8 @@ def main():
         cap = cv2.VideoCapture(config.stream_url)
 
     # Initialize tracker based on configuration
-    if config.tracking_algorithm == "kalman":
-        tracker = AdvancedTracker(max_disappeared=30, max_distance=50, 
-                                 composite_threshold=0.7, composite_frames=10)
-        log.info("Using Kalman filter-based tracking")
-    else:
-        tracker = CentroidTracker(max_disappeared=50, max_distance=50, 
-                                 composite_threshold=0.7, composite_frames=10)
-        log.info("Using centroid-based tracking")
+    tracker = CentroidTracker(max_disappeared=50, max_distance=50,
+                              composite_threshold=0.7, composite_frames=10)
 
     # Loop over the frames from the video stream
     while True:
@@ -108,7 +101,7 @@ def main():
 
         # Class IDs: 0 for person, 25 for umbrella
         person_detections = filter_detections(detections, target_class=0)
-        umbrella_detections = filter_detections(detections, target_class=25)
+        umbrella_detections = []
 
         # Use full bounding boxes for tracking (includes IoU calculation)
         person_bboxes = [det[:4] for det in person_detections]
@@ -145,35 +138,15 @@ def main():
         else:
             filtered_composites = {}
 
-        # Get all tracked objects for counting
-        if config.tracking_algorithm == "kalman":
-            all_objects = {}
-            for t in tracker.trackers:
-                if t.time_since_update < 1 and (t.hit_streak >= tracker.min_hits or tracker.frame_count <= tracker.min_hits):
-                    bbox = t.get_state()[0]
-                    centroid = t.get_centroid()
-                    all_objects[t.id] = {
-                        'centroid': centroid,
-                        'centroids': [centroid],
-                        'bbox': tuple(map(int, bbox)),
-                        'bboxes': [tuple(map(int, bbox))],
-                        'type': t.obj_type,
-                        'correlations': t.correlations,
-                        'is_composite': t.is_composite,
-                        'component_ids': t.component_ids
-                    }
-        else:
-            all_objects = tracker.objects
-
         delta, total, total_down, total_up = handle_tracked_objects(config, delta, height, total, total_down, total_up,
-                                                                    all_objects, config.coords_left_line)
+                                                                    tracker.objects, config.coords_left_line, config.coords_right_line)
 
         info_status = [("Exit", total_up), ("Enter", total_down), ("Delta", delta)]
         info_total = [("Total people inside", total)]
 
         # Draw results on the frame
         frame = draw_on_frame(resized_frame, filtered_persons, filtered_umbrellas, correlations,
-                              width, height, info_status, info_total, config.coords_left_line, filtered_composites)
+                              width, height, info_status, info_total, config.coords_left_line, config.coords_right_line, filtered_composites)
 
         if config.enable_api and (time.time() - api_time) > config.api_interval:
             with ThreadPoolExecutor(max_workers=4) as executor:

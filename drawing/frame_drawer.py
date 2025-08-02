@@ -42,11 +42,12 @@ def _draw_info_panel(frame, width, height, info_status, info_total):
 
 
 def draw_on_frame(resized_frame, tracked_persons, tracked_umbrellas, correlations, width, height, info_status,
-                  info_total, coords_left, tracked_composites=None):
+                  info_total, coords_left, coords_right, tracked_composites=None):
     """Main function to draw all visual elements onto the frame."""
     # Draw the tracking lines
     cv2.line(resized_frame, (0, height // 2), (width, height // 2), (0, 0, 255), 1)
     cv2.line(resized_frame, (coords_left, 0), (coords_left, height), (0, 0, 255), 1)
+    cv2.line(resized_frame, (coords_right, 0), (coords_right, height), (0, 0, 255), 1)
 
     # Draw correlations first, so they are in the background
     for person_id, _, umbrella_id, _ in correlations:
