@@ -50,14 +50,14 @@ def main():
     model, device = load_model()
 
     # Initialize the video stream
-    cap = cv2.VideoCapture(config.stream_url)
+    cap = ThreadingClass(config.stream_url)
 
     # Initialize CentroidTracker
     centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
 
     # Loop over the frames from the video stream
     while True:
-        ret, frame = cap.read()
+        frame = cap.read()
 
         if width is None or height is None:
             (height, width) = frame.shape[:2]
