@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AFF People Tracker Controller{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{% block page_title %}AFF People Tracker Controller{% endblock %}</h1>
+            <p>{% block page_subtitle %}Multi-Tracker Control Panel{% endblock %}</p>
+        </div>
+        
+        {% block content %}{% endblock %}
+        
+        <!-- Toast container for notifications -->
+        <div id="toast-container"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

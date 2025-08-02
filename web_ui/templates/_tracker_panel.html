@@ -1,0 +1,145 @@
+<div class="tracker-panel">
+    <div class="panel-header">
+        <h3>🚪 {{ tracker_name }}</h3>
+        <div class="status-item">
+            <span class="status {{ 'running' if config.status == 'Running' else 'stopped' }}" id="status-{{ tracker_id }}">{{ config.status }}</span>
+            <div class="quick-actions">
+                <button class="btn btn-sm btn-success" onclick="startTracker({{ tracker_id }})">Start</button>
+                <button class="btn btn-sm btn-danger" onclick="stopTracker({{ tracker_id }})">Stop</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+        <button class="tab-btn active" onclick="showTab({{ tracker_id }}, 'config')">⚙️ Configuration</button>
+        <button class="tab-btn" onclick="showTab({{ tracker_id }}, 'testing')">🧪 Testing</button>
+    </div>
+
+    <!-- Testing Tab -->
+    <div id="testing-tab-{{ tracker_id }}" class="tab-content">
+        <!-- Video Feed Preview -->
+        <div class="video-feed-wrapper">
+            <div class="video-preview-section">
+            <h4>📹 Live Video Feed</h4>
+            <div class="video-container">
+                <div id="video-stream-{{ tracker_id }}" class="video-stream video-placeholder">
+                    <svg width="640" height="360" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#333"/>
+                        <text x="50%" y="45%" font-family="Arial, sans-serif" font-size="18px" fill="#f3b323" text-anchor="middle">{{ tracker_name }} Feed</text>
+                        <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="14px" fill="#aaa" text-anchor="middle">Click "Start Preview"</text>
+                    </svg>
+                </div>
+                <div class="video-overlay">
+                    <div class="fps-indicator">
+                        <span id="fps-display-{{ tracker_id }}">0.0 FPS</span>
+                    </div>
+                    <div class="stream-health">
+                        <span class="health-dot inactive" id="health-dot-{{ tracker_id }}"></span>
+                        <span id="health-status-{{ tracker_id }}">Inactive</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <button class="btn btn-sm btn-primary" onclick="startVideoStream({{ tracker_id }})">▶ Start Preview</button>
+                <button class="btn btn-sm btn-secondary" onclick="stopVideoStream({{ tracker_id }})">⏹ Stop Preview</button>
+            </div>
+        </div>
+        </div>
+
+        <!-- Test Video Controls -->
+        <div class="test-video-section">
+            <h4>🎬 Test Video Mode</h4>
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="test-video-mode-{{ tracker_id }}" onchange="toggleTestVideoMode({{ tracker_id }})" 
+                           {{ 'checked' if config.debug_mode else '' }}>
+                    <label for="test-video-mode-{{ tracker_id }}">Enable Test Video Mode</label>
+                </div>
+            </div>
+            
+            <div id="test-video-controls-{{ tracker_id }}" class="test-video-panel {{ 'hidden' if not config.debug_mode else '' }}">
+                <div class="form-group">
+                    <label for="test-video-{{ tracker_id }}">Select Test Video</label>
+                    <select id="test-video-{{ tracker_id }}" onchange="updateStreamUrl({{ tracker_id }})">
+                        <option value="">Choose a test video...</option>
+                        {% for video in test_videos %}
+                        <option value="{{ video }}">{{ video }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Logs -->
+        <div class="debug-logs-section">
+            <div class="logs-header">
+                <h4>📝 Debug Logs</h4>
+                <div class="log-actions">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="auto-refresh-logs-{{ tracker_id }}" checked>
+                        <label for="auto-refresh-logs-{{ tracker_id }}">Auto-refresh</label>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="clearDebugLogs({{ tracker_id }})">Clear</button>
+                    <button class="btn btn-sm btn-primary" onclick="refreshDebugLogs({{ tracker_id }})">Refresh</button>
+                </div>
+            </div>
+            
+            <div class="logs-container">
+                <div id="debug-logs-{{ tracker_id }}" class="debug-log-container">
+                    Loading debug logs...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Tab -->
+    <div id="config-tab-{{ tracker_id }}" class="tab-content active">
+        <div class="config-section">
+            <h4>⚙️ Tracker Configuration</h4>
+            
+            <form class="config-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="device-{{ tracker_id }}">Device Name</label>
+                        <input type="text" id="device-{{ tracker_id }}" value="{{ config.device }}" placeholder="Device name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="coords-left-line-{{ tracker_id }}">Left Line Coordinate</label>
+                        <input type="number" id="coords-left-line-{{ tracker_id }}" value="{{ config.coords_left_line }}" min="50" max="1000" step="1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stream-url-{{ tracker_id }}">Stream URL</label>
+                    <input type="text" id="stream-url-{{ tracker_id }}" value="{{ config.stream_url }}" placeholder="RTSP URL or test video path">
+                </div>
+                
+                <div class="form-row">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enable-api-{{ tracker_id }}" {{ 'checked' if config.enable_api else '' }}>
+                        <label for="enable-api-{{ tracker_id }}">Enable API</label>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="api-url-{{ tracker_id }}">API URL</label>
+                        <input type="text" id="api-url-{{ tracker_id }}" value="{{ config.api_url }}" placeholder="API endpoint URL">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="api-interval-{{ tracker_id }}">API Interval (seconds)</label>
+                        <input type="number" id="api-interval-{{ tracker_id }}" value="{{ config.api_interval }}" min="10" max="3600" step="1">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="applyConfig({{ tracker_id }})">Apply Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

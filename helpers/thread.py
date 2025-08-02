@@ -4,9 +4,10 @@ import time
 
 class ThreadingClass:
     # initiate threading class
-    def __init__(self, name):
+    def __init__(self, name, debug_logger=None):
         self.cap = cv2.VideoCapture(name)
         self.stream_url = name
+        self.debug_logger = debug_logger
         self.cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 60000)
         self.cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 60000)
         # define an empty queue and thread
@@ -24,13 +25,16 @@ class ThreadingClass:
         while True:
             ret, frame = self.cap.read()  # read the frames and ---
             if not ret:
-                print("Error: Stream timeout or frame read error.")
+                if self.debug_logger:
+                    self.debug_logger.log_error("Stream timeout or frame read error.")
                 retry_count += 1
                 if retry_count > max_retries:
-                    print("Error: Maximum retry limit reached. Exiting.")
+                    if self.debug_logger:
+                        self.debug_logger.log_error("Maximum retry limit reached. Exiting.")
                     break
                 else:
-                    print(f"Retrying in {retry_delay} seconds... ({retry_count}/{max_retries})")
+                    if self.debug_logger:
+                        self.debug_logger.log_warning(f"Retrying in {retry_delay} seconds... ({retry_count}/{max_retries})")
                     time.sleep(retry_delay)
                     self.cap.release()
                     self.cap = cv2.VideoCapture(self.stream_url)

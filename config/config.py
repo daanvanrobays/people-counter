@@ -1,3 +1,5 @@
+import json
+import os
 from dataclasses import dataclass
 
 
@@ -14,32 +16,44 @@ class Config:
     coords_right_line: int = 640
     verbose: bool = False
     enable_composite_objects: bool = False
+    debug_mode: bool = False
 
 
-def get_config(config_type: int = 0):
-    if config_type == 0:
-        return Config(
-            enable_api=False,
-            api_url="",
-            api_interval=60,
-            angle_offset=45.0,
-            distance_offset=80.0,
-            device="Kamerotski",
-            stream_url="test/escalator.webm",
-            coords_left_line=50,
-            coords_right_line=480,
-            enable_composite_objects=False,
-        )
-    else:
-        return Config(
-            enable_api=False,
-            api_url="",
-            api_interval=60,
-            angle_offset=45.0,
-            distance_offset=80.0,
-            device="Henk",
-            stream_url="test/escalator.webm",
-            coords_left_line=0,
-            coords_right_line=395,
-            enable_composite_objects=False,
+def get_config(input):
+    # Check for temporary config file first
+    temp_config_file = f"config/temp_config_{input}.json"
+    if os.path.exists(temp_config_file):
+        try:
+            with open(temp_config_file, 'r') as f:
+                config_data = json.load(f)
+            return Config(**config_data)
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"Error loading temp config: {e}, falling back to default")
+
+    def get_config(config_type: int = 0):
+        if config_type == 0:
+            return Config(
+                enable_api=False,
+                api_url="",
+                api_interval=60,
+                angle_offset=45.0,
+                distance_offset=80.0,
+                device="Kamerotski",
+                stream_url="test/escalator.webm",
+                coords_left_line=50,
+                coords_right_line=480,
+                enable_composite_objects=False,
+            )
+        else:
+            return Config(
+                enable_api=False,
+                api_url="",
+                api_interval=60,
+                angle_offset=45.0,
+                distance_offset=80.0,
+                device="Henk",
+                stream_url="test/escalator.webm",
+                coords_left_line=0,
+                coords_right_line=395,
+                enable_composite_objects=False,
         )
