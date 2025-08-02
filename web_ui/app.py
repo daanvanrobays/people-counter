@@ -31,6 +31,6 @@ def create_app(config_name='default'):
 
 if __name__ == '__main__':
     app = create_app()
-    print("Starting YOLOv7 Multi-Tracker Web UI...")
+    print("Starting YOLOv8 Multi-Tracker Web UI...")
     print("Open your browser and go to: http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)

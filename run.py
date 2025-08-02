@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple launcher for the YOLOv7 Multi-Tracker Web UI
+Simple launcher for the YOLOv8 Multi-Tracker Web UI
 """
 import os
 import sys
