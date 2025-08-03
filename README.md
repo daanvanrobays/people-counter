@@ -1,6 +1,27 @@
 # People Counter
 
-Advanced real-time people counting system with web-based management interface, powered by YOLOv8 object detection.
+Advanced real-time people counting system with clean modular architecture, featuring web-based management interface and intelligent model management, powered by YOLOv8 object detection.
+
+## 🚀 What's New
+
+### ✨ **Clean Architecture & Model Management**
+- **🏗️ Modular Design**: Separate modules for processing, web UI, and shared components
+- **🤖 Smart Model Management**: Easy switching between 5 YOLO models (nano to extra-large)
+- **⚡ Hot Model Switching**: Change models during runtime without restart
+- **📊 Performance Benchmarking**: Built-in model performance testing
+- **🌐 Web UI Integration**: Complete model management through web interface
+- **🔄 Backwards Compatibility**: Legacy code continues to work with deprecation warnings
+
+### 🎯 **Quick Start Examples**
+```bash
+# Start with different models
+python yolov8_main.py -i 0 --model yolov8n.pt  # Fastest
+python yolov8_main.py -i 0 --model yolov8x.pt  # Most accurate
+
+# Model management
+python model_manager.py --list                  # Show available models
+python model_manager.py --set-default yolov8l.pt  # Set default model
+```
 
 ## Features
 
@@ -9,14 +30,19 @@ Advanced real-time people counting system with web-based management interface, p
 - **Directional Counting**: Separate counting for entry/exit with configurable detection lines
 - **Composite Object Tracking**: Advanced tracking of people with umbrellas
 - **Multi-Stream Support**: Handle multiple RTSP streams or test videos simultaneously
+- **Intelligent Model Management**: Easy switching between YOLOv8 models (nano to extra-large)
 
 ### 🌐 Web Interface
 - **Live Video Streaming**: Real-time preview with detection overlays
 - **Dynamic Configuration**: Adjust detection parameters without restart
+- **Model Management UI**: Download, switch, and benchmark YOLO models
 - **System Monitoring**: GPU utilization, stream health, performance metrics
 - **Debug Logging**: Comprehensive logging with real-time viewing
 
 ### 🔧 Advanced Features
+- **Clean Modular Architecture**: Separate modules for processing, web UI, and shared components
+- **Hot Model Switching**: Change YOLO models during runtime without restart
+- **Performance Benchmarking**: Built-in model performance testing
 - **Kalman Filter Tracking**: Smooth object tracking with prediction
 - **CUDA GPU Support**: Optimized for NVIDIA GPU acceleration
 - **API Integration**: REST API for external data collection
@@ -54,22 +80,44 @@ Advanced real-time people counting system with web-based management interface, p
 
 4. **Download YOLO models** (optional - auto-downloaded on first run)
    ```bash
-   # YOLOv8 models will be automatically downloaded when needed
-   # Available models: yolov8n.pt, yolov8m.pt, yolov8l.pt, yolov8x.pt
+   # List available models
+   python model_manager.py --list
+   
+   # Download specific models
+   python model_manager.py --download yolov8l.pt
+   
+   # Download all models
+   python model_manager.py --download-all
    ```
 
 ### Running the Application
 
 #### Web Interface (Recommended)
 ```bash
-python run.py
+# Start web UI with tracker management
+python web_tracker_ui.py
 ```
 Open browser to `http://localhost:5000`
 
 #### Direct Command Line
 ```bash
-# Run tracker directly (config ID: 0 or 1)
+# New clean architecture (recommended)
+python yolov8_main.py -i 0 --model yolov8m.pt --verbose
+
+# Legacy compatibility
 python yolov8_video.py -i 0
+```
+
+#### Model Management
+```bash
+# List available models with status
+python model_manager.py --list
+
+# Set default model for configuration
+python model_manager.py --set-default yolov8l.pt --config-id 0
+
+# Benchmark model performance
+python model_manager.py --benchmark yolov8m.pt
 ```
 
 ## Configuration
@@ -82,17 +130,41 @@ python yolov8_video.py -i 0
 
 ### Web Interface
 1. **Configuration Tab**: Adjust detection parameters, stream URLs, API settings
-2. **Testing Tab**: Live video preview, test video mode, debug logs
-3. **Real-time Updates**: Changes apply immediately without restart
+2. **Model Management**: Download, switch, and benchmark YOLO models
+3. **Testing Tab**: Live video preview, test video mode, debug logs
+4. **Real-time Updates**: Changes apply immediately without restart
 
 ## Architecture
 
+### Clean Modular Design
+```
+project/
+├── shared/                    # Shared components
+│   ├── tracking/              # Core tracking algorithms
+│   ├── utils/                 # Utilities (threading, geometry)
+│   └── logging/               # Logging infrastructure
+├── yolov8/                    # YOLOv8 processing module
+│   ├── core/                  # Main processing logic
+│   ├── detection/             # YOLO detection
+│   ├── video/                 # Stream management
+│   ├── api/                   # API client
+│   ├── tracking/              # Tracking integration
+│   ├── visualization/         # Frame rendering
+│   └── management/            # Model management
+├── web_ui/                    # Web interface
+│   ├── routes/                # Flask routes & API
+│   ├── models/                # Data models
+│   └── static/templates/      # Frontend assets
+└── config/                    # Application configuration
+```
+
 ### Core Components
-- **`yolov8_video.py`**: Main YOLOv8 detection engine
+- **`yolov8_main.py`**: New clean architecture entry point
+- **`yolov8_video.py`**: Legacy compatibility wrapper
+- **`model_manager.py`**: YOLO model management utility
 - **`web_tracker_ui.py`**: Flask web interface
-- **`tracking/centroid_tracker.py`**: Object tracking algorithms
+- **`shared/tracking/`**: Core tracking algorithms
 - **`config/config.py`**: Configuration management
-- **`drawing/frame_drawer.py`**: Video annotation and visualization
 
 ### Detection Pipeline
 1. **Video Input**: RTSP stream or video file
@@ -101,7 +173,16 @@ python yolov8_video.py -i 0
 4. **Counting Logic**: Directional counting based on detection lines
 5. **Output**: Real-time counts, API updates, web display
 
-## Performance Optimization
+## Model Selection & Performance
+
+### Available YOLO Models
+| Model | Speed | Accuracy | Size | Best For |
+|-------|-------|----------|------|----------|
+| **yolov8n.pt** | ⚡⚡⚡⚡⚡ | ⭐⭐ | 6MB | Real-time, mobile, edge devices |
+| **yolov8s.pt** | ⚡⚡⚡⚡ | ⭐⭐⭐ | 22MB | Fast processing, embedded systems |
+| **yolov8m.pt** | ⚡⚡⚡ | ⭐⭐⭐⭐ | 52MB | **Default** - balanced performance |
+| **yolov8l.pt** | ⚡⚡ | ⭐⭐⭐⭐⭐ | 88MB | Production systems, high accuracy |
+| **yolov8x.pt** | ⚡ | ⭐⭐⭐⭐⭐⭐ | 137MB | Maximum accuracy, offline processing |
 
 ### GPU Requirements
 - **Minimum**: GTX 1060 / RTX 2060 (6GB VRAM)
@@ -109,10 +190,11 @@ python yolov8_video.py -i 0
 - **Multiple Streams**: RTX 4080+ (12GB+ VRAM)
 
 ### Performance Tips
-- Use YOLOv8n for fastest inference on lower-end hardware
-- Use YOLOv8m for balanced accuracy/speed
-- Reduce video resolution for better performance
-- Enable CUDA memory optimization in settings
+- Use `yolov8n.pt` for fastest inference on lower-end hardware
+- Use `yolov8m.pt` for balanced accuracy/speed (default)
+- Use `yolov8l.pt` or `yolov8x.pt` for maximum accuracy
+- Switch models instantly: `python model_manager.py --set-default yolov8l.pt`
+- Benchmark models: `python model_manager.py --benchmark yolov8m.pt`
 
 ## Troubleshooting
 
@@ -131,10 +213,75 @@ Enable debug logging in the web interface to diagnose issues:
 ## API Reference
 
 ### REST Endpoints
-- `POST /api/tracker/{id}/start` - Start tracker
-- `POST /api/tracker/{id}/stop` - Stop tracker  
-- `PUT /api/tracker/{id}/config` - Update configuration
-- `GET /api/tracker/{id}/status` - Get tracker status
+
+#### Tracker Management
+- `POST /api/start/<id>` - Start tracker instance
+- `POST /api/stop/<id>` - Stop tracker instance
+- `GET /api/status` - Get status of all trackers
+- `POST /api/update_config/<id>` - Update tracker configuration
+
+#### Model Management (New!)
+- `GET /api/models` - List all available models with status
+- `POST /api/models/download` - Download a specific model
+- `POST /api/models/set/<id>` - Set model for tracker configuration
+- `GET /api/models/current/<id>` - Get current model for tracker
+- `POST /api/models/test` - Test model performance
+- `GET /api/models/recommendations` - Get model recommendations
+
+#### Video Streaming
+- `POST /api/start_stream/<id>` - Start video stream preview
+- `GET /api/stop_stream/<id>` - Stop video stream
+- `GET /api/video_feed/<id>` - Get video frame (JPEG)
+- `GET /api/stream_info` - Get stream status for all trackers
+
+## Migration Guide
+
+### From Legacy to Clean Architecture
+
+The project has been restructured with a clean modular architecture. Here's how to migrate:
+
+#### ✅ **Recommended New Usage:**
+```bash
+# Use new entry point
+python yolov8_main.py -i 0 --model yolov8l.pt --verbose
+
+# Model management
+python model_manager.py --list
+python model_manager.py --set-default yolov8x.pt
+```
+
+#### ⚠️ **Legacy Compatibility:**
+```bash
+# Old method still works (with deprecation warning)
+python yolov8_video.py -i 0
+```
+
+#### 📦 **Import Changes:**
+```python
+# New recommended imports
+from yolov8.core.processor import VideoProcessor
+from shared.tracking import CentroidTracker
+from shared.utils import ThreadingClass
+
+# Legacy imports still work (with warnings)
+from tracking.centroid_tracker import CentroidTracker
+```
+
+### Benefits of New Architecture
+- **🔧 Easy Model Switching**: Change YOLO models with one command
+- **🎯 Clean Separation**: Modular components for better maintenance
+- **🔄 Hot Configuration**: Update settings without restart
+- **📊 Performance Monitoring**: Built-in model benchmarking
+- **🌐 Web UI Integration**: Complete model management through web interface
+- **🛠️ Future-Ready**: Easy to extend with new features
+
+## Documentation
+
+### Additional Resources
+- [**Model Management Guide**](MODEL_MANAGEMENT.md) - Complete guide to YOLO model management
+- [**Shared Architecture**](SHARED_ARCHITECTURE.md) - Details about the modular architecture
+- [**Final Architecture**](ARCHITECTURE) - Complete architecture overview
+- [**Test Results**](TEST_RESULTS.md) - Comprehensive testing documentation
 
 ## License
 

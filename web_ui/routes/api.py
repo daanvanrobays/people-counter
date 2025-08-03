@@ -187,3 +187,80 @@ def video_feed_api(tracker_id):
         return Response(buffer.tobytes(), mimetype='image/jpeg')
     
     return "Error generating frame", 500
+
+
+# Model Management API Routes
+@api.route('/models')
+def get_models():
+    """Get all available YOLO models with their status"""
+    models = tracker_manager.get_available_models()
+    return jsonify({"success": True, "models": models})
+
+
+@api.route('/models/download', methods=['POST'])
+def download_model():
+    """Download a specific YOLO model"""
+    try:
+        data = request.json
+        model_name = data.get('model_name')
+        
+        if not model_name:
+            return jsonify({"success": False, "message": "Model name is required"})
+        
+        success, message = tracker_manager.download_model(model_name)
+        return jsonify({"success": success, "message": message})
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@api.route('/models/set/<int:config_id>', methods=['POST'])
+def set_model(config_id):
+    """Set the YOLO model for a specific configuration"""
+    try:
+        data = request.json
+        model_name = data.get('model_name')
+        
+        if not model_name:
+            return jsonify({"success": False, "message": "Model name is required"})
+        
+        result = tracker_manager.set_model_for_config(config_id, model_name)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@api.route('/models/current/<int:config_id>')
+def get_current_model(config_id):
+    """Get the current YOLO model for a configuration"""
+    current_model = tracker_manager.get_current_model(config_id)
+    return jsonify({"success": True, "current_model": current_model})
+
+
+@api.route('/models/test', methods=['POST'])
+def test_model():
+    """Test the performance of a specific model"""
+    try:
+        data = request.json
+        model_name = data.get('model_name')
+        
+        if not model_name:
+            return jsonify({"success": False, "message": "Model name is required"})
+        
+        success, metrics = tracker_manager.test_model_performance(model_name)
+        if success:
+            return jsonify({"success": True, "metrics": metrics})
+        else:
+            return jsonify({"success": False, "message": metrics.get("error", "Test failed")})
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@api.route('/models/recommendations')
+def get_model_recommendations():
+    """Get model recommendations based on use case"""
+    use_case = request.args.get('use_case', 'general')
+    recommendations = tracker_manager.get_model_recommendations(use_case)
+    return jsonify({"success": True, "recommendations": recommendations})

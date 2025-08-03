@@ -5,7 +5,7 @@ from collections import OrderedDict
 import numpy as np
 import logging
 
-from helpers.utils import get_matching_indices, compute_centroids, angle_from_vertical, calculate_iou
+from shared.utils.geometry import get_matching_indices, compute_centroids, angle_from_vertical, calculate_iou
 
 log = logging.getLogger(__name__)
 

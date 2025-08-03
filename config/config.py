@@ -17,6 +17,7 @@ class Config:
     verbose: bool = False
     enable_composite_objects: bool = False
     debug_mode: bool = False
+    yolo_model: str = "yolov8m.pt"
 
 
 def get_config(input):
@@ -44,6 +45,7 @@ def get_config(input):
             coords_left_line=50,
             coords_right_line=480,
             enable_composite_objects=False,
+            yolo_model="yolov8m.pt",
         )
     else:
         return Config(
@@ -57,4 +59,5 @@ def get_config(input):
             coords_left_line=0,
             coords_right_line=395,
             enable_composite_objects=False,
+            yolo_model="yolov8m.pt",
         )

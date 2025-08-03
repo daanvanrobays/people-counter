@@ -7,12 +7,13 @@ import subprocess
 import threading
 
 from config.config import get_config
-from helpers.logging_utils import get_tracker_debug_logger
+from shared.logging.utils import get_tracker_debug_logger
 from web_ui.models.video_streamer import VideoStreamer
 from web_ui.utils.message_filters import (
     should_ignore_message, is_info_message, 
     is_rtsp_error, is_ffmpeg_error
 )
+from yolov8.management.model_manager import ModelManager
 
 
 class TrackerManager:
@@ -23,6 +24,7 @@ class TrackerManager:
         self.configs = {}
         self.stderr_threads = {}
         self.video_streamer = VideoStreamer()
+        self.model_manager = ModelManager()
         self.load_default_configs()
 
     def load_default_configs(self):
@@ -39,6 +41,7 @@ class TrackerManager:
                 'coords_right_line': config.coords_right_line,
                 'angle_offset': config.angle_offset,
                 'distance_offset': config.distance_offset,
+                'yolo_model': getattr(config, 'yolo_model', 'yolov8m.pt'),
                 'debug_mode': False
             }
 
@@ -101,10 +104,23 @@ class TrackerManager:
             # Create temporary config
             self.save_temp_config(config_id)
             
+            # Get the YOLO model from config
+            config = self.configs[config_id]
+            yolo_model = config.get('yolo_model', 'yolov8m.pt')
+            
+            # Build command with model parameter
+            cmd = [
+                "python", "yolov8_main.py", 
+                "-i", str(config_id),
+                "--model", yolo_model
+            ]
+            
+            # Add verbose flag if in debug mode
+            if config.get('debug_mode', False):
+                cmd.append("--verbose")
+            
             # Start the process, redirecting stderr to a pipe
-            process = subprocess.Popen([
-                "python", "yolov8_video.py", "-i", str(config_id)
-            ], cwd=os.getcwd(), stderr=subprocess.PIPE)
+            process = subprocess.Popen(cmd, cwd=os.getcwd(), stderr=subprocess.PIPE)
             
             self.processes[config_id] = process
 
@@ -117,9 +133,9 @@ class TrackerManager:
             stderr_thread.start()
             self.stderr_threads[config_id] = stderr_thread
             
-            config = self.configs[config_id]
             mode_text = "debug mode" if config['debug_mode'] else "live mode"
-            return {"success": True, "message": f"Tracker {config_id} started in {mode_text}!"}
+            model_text = f"using {yolo_model}"
+            return {"success": True, "message": f"Tracker {config_id} started in {mode_text} {model_text}!"}
             
         except Exception as e:
             return {"success": False, "message": f"Failed to start tracker {config_id}: {str(e)}"}
@@ -189,6 +205,43 @@ class TrackerManager:
     def stop_video_stream(self, config_id):
         """Stop video stream"""
         self.video_streamer.stop_video_capture(config_id)
+    
+    # Model Management Methods
+    def get_available_models(self):
+        """Get all available YOLO models with their status"""
+        return self.model_manager.get_available_models()
+    
+    def download_model(self, model_name):
+        """Download a specific YOLO model"""
+        return self.model_manager.download_model(model_name)
+    
+    def set_model_for_config(self, config_id, model_name):
+        """Set the YOLO model for a specific configuration"""
+        # Update the local config
+        self.configs[config_id]['yolo_model'] = model_name
+        
+        # Save to temp config file with update flag
+        self.save_temp_config(config_id, config_updated=True)
+        
+        # Also set as active model using model manager
+        success, message = self.model_manager.set_active_model(model_name, config_id)
+        
+        if success:
+            return {"success": True, "message": f"Model set to {model_name} for tracker {config_id}"}
+        else:
+            return {"success": False, "message": message}
+    
+    def get_current_model(self, config_id):
+        """Get the current YOLO model for a configuration"""
+        return self.configs[config_id].get('yolo_model', 'yolov8m.pt')
+    
+    def test_model_performance(self, model_name):
+        """Test the performance of a specific model"""
+        return self.model_manager.test_model(model_name)
+    
+    def get_model_recommendations(self, use_case="general"):
+        """Get model recommendations based on use case"""
+        return self.model_manager.get_model_recommendations(use_case)
 
 
 # Global tracker manager instance
