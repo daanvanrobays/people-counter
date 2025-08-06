@@ -1,26 +1,35 @@
 # People Counter
 
-Advanced real-time people counting system with clean modular architecture, featuring web-based management interface and intelligent model management, powered by YOLOv8 object detection.
+Advanced real-time people counting system with modern web interface, intelligent debug logging, and comprehensive model management. Features clean modular architecture powered by YOLO11 object detection.
 
 ## 🚀 What's New
 
-### ✨ **Clean Architecture & Model Management**
-- **🏗️ Modular Design**: Separate modules for processing, web UI, and shared components
-- **🤖 Smart Model Management**: Easy switching between 5 YOLO models (nano to extra-large)
+### ✨ **Modern Web Interface (2025 Update)**
+- **🎛️ Advanced Dashboard**: Real-time tracker management with live status updates
+- **📝 Smart Debug Logging**: Intelligent log filtering with performance controls
+- **🔄 Auto-Refresh Logs**: Always see latest activity with smooth scrolling
+- **📱 Mobile Responsive**: Works perfectly on all devices
+- **🎨 Enhanced UI**: Toast notifications, smooth animations, professional styling
+
+### 🤖 **YOLO11 Model Management**
+- **🆕 Latest Models**: YOLO11 nano to extra-large (yolo11n.pt to yolo11x.pt)
 - **⚡ Hot Model Switching**: Change models during runtime without restart
 - **📊 Performance Benchmarking**: Built-in model performance testing
-- **🌐 Web UI Integration**: Complete model management through web interface
-- **🔄 Backwards Compatibility**: Legacy code continues to work with deprecation warnings
+- **🌐 Web-Based Management**: Complete model control through web interface
+- **🔧 Smart Defaults**: Optimized model selection for different use cases
 
 ### 🎯 **Quick Start Examples**
 ```bash
-# Start with different models
-python yolov8_main.py -i 0 --model yolov8n.pt  # Fastest
-python yolov8_main.py -i 0 --model yolov8x.pt  # Most accurate
+# Start with web interface (recommended)
+python run.py
+
+# Direct command line with different models
+python detection_main.py -i 0 --model yolo11n.pt  # Fastest
+python detection_main.py -i 0 --model yolo11x.pt  # Most accurate
 
 # Model management
-python model_manager.py --list                  # Show available models
-python model_manager.py --set-default yolov8l.pt  # Set default model
+python model_manager.py --list                     # Show available models
+python model_manager.py --set-default yolo11l.pt  # Set default model
 ```
 
 ## Features
@@ -32,12 +41,13 @@ python model_manager.py --set-default yolov8l.pt  # Set default model
 - **Multi-Stream Support**: Handle multiple RTSP streams or test videos simultaneously
 - **Intelligent Model Management**: Easy switching between YOLOv8 models (nano to extra-large)
 
-### 🌐 Web Interface
-- **Live Video Streaming**: Real-time preview with detection overlays
-- **Dynamic Configuration**: Adjust detection parameters without restart
-- **Model Management UI**: Download, switch, and benchmark YOLO models
-- **System Monitoring**: GPU utilization, stream health, performance metrics
-- **Debug Logging**: Comprehensive logging with real-time viewing
+### 🌐 Modern Web Interface
+- **Real-Time Dashboard**: Live tracker status with instant updates
+- **Smart Debug Logging**: Intelligent filtering with performance toggle
+- **Device-Named Notifications**: User-friendly alerts using device names
+- **Auto-Scrolling Logs**: Latest activity always visible
+- **Mobile-First Design**: Professional responsive interface
+- **Toast Notifications**: Elegant feedback system with smooth animations
 
 ### 🔧 Advanced Features
 - **Clean Modular Architecture**: Separate modules for processing, web UI, and shared components
@@ -94,17 +104,23 @@ python model_manager.py --set-default yolov8l.pt  # Set default model
 
 #### Web Interface (Recommended)
 ```bash
-# Start web UI with tracker management
-python web_tracker_ui.py
+# Start modern web UI with advanced dashboard
+python run.py
 ```
 Open browser to `http://localhost:5000`
 
+**Features:**
+- Real-time tracker management dashboard  
+- Smart debug logging with performance controls
+- Device-named notifications and status updates
+- Mobile-responsive design with toast notifications
+
 #### Direct Command Line
 ```bash
-# New clean architecture (recommended)
-python yolov8_main.py -i 0 --model yolov8m.pt --verbose
+# New detection system (recommended)
+python detection_main.py -i 0 --model yolo11m.pt --verbose
 
-# Legacy compatibility
+# Legacy YOLOv8 compatibility  
 python yolov8_video.py -i 0
 ```
 
@@ -128,11 +144,12 @@ python model_manager.py --benchmark yolov8m.pt
 - **Detection Lines**: Configure entry/exit counting boundaries
 - **API Settings**: Enable external data collection
 
-### Web Interface
+### Modern Web Interface
 1. **Configuration Tab**: Adjust detection parameters, stream URLs, API settings
-2. **Model Management**: Download, switch, and benchmark YOLO models
-3. **Testing Tab**: Live video preview, test video mode, debug logs
-4. **Real-time Updates**: Changes apply immediately without restart
+2. **Testing Tab**: Smart debug logging with performance controls
+3. **Real-time Dashboard**: Live tracker status with device-named notifications  
+4. **Auto-Scrolling Logs**: Latest activity always visible with smooth animations
+5. **Mobile Responsive**: Professional interface that works on all devices
 
 ## Architecture
 
@@ -142,47 +159,50 @@ project/
 ├── shared/                    # Shared components
 │   ├── tracking/              # Core tracking algorithms
 │   ├── utils/                 # Utilities (threading, geometry)
-│   └── logging/               # Logging infrastructure
-├── yolov8/                    # YOLOv8 processing module
+│   └── logging/               # Smart debug logging system
+├── detection/                 # Modern YOLO11 detection system
 │   ├── core/                  # Main processing logic
-│   ├── detection/             # YOLO detection
+│   ├── detection/             # YOLO11 detection
 │   ├── video/                 # Stream management
-│   ├── api/                   # API client
+│   ├── api/                   # API client integration
 │   ├── tracking/              # Tracking integration
 │   ├── visualization/         # Frame rendering
 │   └── management/            # Model management
-├── web_ui/                    # Web interface
-│   ├── routes/                # Flask routes & API
-│   ├── models/                # Data models
-│   └── static/templates/      # Frontend assets
-└── config/                    # Application configuration
+├── web_ui/                    # Modern web interface
+│   ├── routes/                # Flask routes & REST API
+│   ├── models/                # Tracker management
+│   ├── static/                # CSS, JS, responsive design
+│   └── templates/             # HTML templates
+├── yolov8/                    # Legacy YOLOv8 (deprecated)
+└── config/                    # Configuration management
 ```
 
 ### Core Components
-- **`yolov8_main.py`**: New clean architecture entry point
-- **`yolov8_video.py`**: Legacy compatibility wrapper
+- **`detection_main.py`**: Modern YOLO11 detection system entry point
+- **`web_tracker_ui.py`**: Advanced web interface with smart logging
 - **`model_manager.py`**: YOLO model management utility
-- **`web_tracker_ui.py`**: Flask web interface
-- **`shared/tracking/`**: Core tracking algorithms
-- **`config/config.py`**: Configuration management
+- **`shared/logging/`**: Intelligent debug logging system
+- **`shared/tracking/`**: Core tracking algorithms with Kalman filtering
+- **`config/config.py`**: Enhanced configuration management
 
 ### Detection Pipeline
 1. **Video Input**: RTSP stream or video file
-2. **Object Detection**: YOLOv8 person detection
+2. **Object Detection**: YOLO11 person detection with intelligent filtering
 3. **Tracking**: Centroid-based tracking with Kalman filtering
 4. **Counting Logic**: Directional counting based on detection lines
-5. **Output**: Real-time counts, API updates, web display
+5. **Smart Logging**: Intelligent debug logging with performance controls
+6. **Output**: Real-time counts, web dashboard updates, API integration
 
 ## Model Selection & Performance
 
 ### Available YOLO Models
 | Model | Speed | Accuracy | Size | Best For |
 |-------|-------|----------|------|----------|
-| **yolov8n.pt** | ⚡⚡⚡⚡⚡ | ⭐⭐ | 6MB | Real-time, mobile, edge devices |
-| **yolov8s.pt** | ⚡⚡⚡⚡ | ⭐⭐⭐ | 22MB | Fast processing, embedded systems |
-| **yolov8m.pt** | ⚡⚡⚡ | ⭐⭐⭐⭐ | 52MB | **Default** - balanced performance |
-| **yolov8l.pt** | ⚡⚡ | ⭐⭐⭐⭐⭐ | 88MB | Production systems, high accuracy |
-| **yolov8x.pt** | ⚡ | ⭐⭐⭐⭐⭐⭐ | 137MB | Maximum accuracy, offline processing |
+| **yolo11n.pt** | ⚡⚡⚡⚡⚡ | ⭐⭐ | 5MB | Real-time, mobile, edge devices |
+| **yolo11s.pt** | ⚡⚡⚡⚡ | ⭐⭐⭐ | 20MB | Fast processing, embedded systems |
+| **yolo11m.pt** | ⚡⚡⚡ | ⭐⭐⭐⭐ | 49MB | **Default** - balanced performance |
+| **yolo11l.pt** | ⚡⚡ | ⭐⭐⭐⭐⭐ | 86MB | Production systems, high accuracy |
+| **yolo11x.pt** | ⚡ | ⭐⭐⭐⭐⭐⭐ | 135MB | Maximum accuracy, offline processing |
 
 ### GPU Requirements
 - **Minimum**: GTX 1060 / RTX 2060 (6GB VRAM)
@@ -190,11 +210,12 @@ project/
 - **Multiple Streams**: RTX 4080+ (12GB+ VRAM)
 
 ### Performance Tips
-- Use `yolov8n.pt` for fastest inference on lower-end hardware
-- Use `yolov8m.pt` for balanced accuracy/speed (default)
-- Use `yolov8l.pt` or `yolov8x.pt` for maximum accuracy
-- Switch models instantly: `python model_manager.py --set-default yolov8l.pt`
-- Benchmark models: `python model_manager.py --benchmark yolov8m.pt`
+- Use `yolo11n.pt` for fastest inference on lower-end hardware
+- Use `yolo11m.pt` for balanced accuracy/speed (default)
+- Use `yolo11l.pt` or `yolo11x.pt` for maximum accuracy
+- Switch models instantly: `python model_manager.py --set-default yolo11l.pt`
+- Benchmark models: `python model_manager.py --benchmark yolo11m.pt`
+- **Debug Logging**: Toggle off in web interface for better performance on long-running systems
 
 ## Troubleshooting
 
@@ -204,21 +225,23 @@ project/
 - **Stream connection**: Check RTSP URL format and network connectivity
 - **Package conflicts**: Use clean virtual environment
 
-### Debug Mode
-Enable debug logging in the web interface to diagnose issues:
-- Stream connectivity problems
-- Detection accuracy issues
-- Performance bottlenecks
+### Smart Debug Logging
+Use the enhanced debug logging system in the web interface:
+- **Performance Toggle**: Enable/disable logging for optimal performance
+- **Auto-Scrolling Logs**: Latest activity always visible
+- **Intelligent Filtering**: Clean, readable log messages
+- **Real-Time Updates**: Immediate feedback on system status
+- **Device Names**: User-friendly notifications with device names
 
 ## API Reference
 
 ### REST Endpoints
 
 #### Tracker Management
-- `POST /api/start/<id>` - Start tracker instance
-- `POST /api/stop/<id>` - Stop tracker instance
-- `GET /api/status` - Get status of all trackers
+- `POST /api/start_tracker/<id>` - Start tracker instance
+- `POST /api/stop_tracker/<id>` - Stop tracker instance
 - `POST /api/update_config/<id>` - Update tracker configuration
+- `POST /api/update_debug_logging/<id>` - Toggle debug logging for performance
 
 #### Model Management (New!)
 - `GET /api/models` - List all available models with status
@@ -236,38 +259,37 @@ The project has been restructured with a clean modular architecture. Here's how 
 
 #### ✅ **Recommended New Usage:**
 ```bash
-# Use new entry point
-python yolov8_main.py -i 0 --model yolov8l.pt --verbose
+# Use modern detection system
+python detection_main.py -i 0 --model yolo11l.pt --verbose
+
+# Advanced web interface (recommended)
+python run.py
 
 # Model management
 python model_manager.py --list
-python model_manager.py --set-default yolov8x.pt
-```
-
-#### ⚠️ **Legacy Compatibility:**
-```bash
-# Old method still works (with deprecation warning)
-python yolov8_video.py -i 0
+python model_manager.py --set-default yolo11x.pt
 ```
 
 #### 📦 **Import Changes:**
 ```python
 # New recommended imports
-from yolov8.core.processor import VideoProcessor
+from detection.core.processor import VideoProcessor
 from shared.tracking import CentroidTracker
-from shared.utils import ThreadingClass
+from shared.logging.utils import get_tracker_debug_logger
 
-# Legacy imports still work (with warnings)
+# Legacy imports still work (deprecated)
+from yolov8.core.processor import VideoProcessor
 from tracking.centroid_tracker import CentroidTracker
 ```
 
 ### Benefits of New Architecture
-- **🔧 Easy Model Switching**: Change YOLO models with one command
-- **🎯 Clean Separation**: Modular components for better maintenance
-- **🔄 Hot Configuration**: Update settings without restart
-- **📊 Performance Monitoring**: Built-in model benchmarking
-- **🌐 Web UI Integration**: Complete model management through web interface
-- **🛠️ Future-Ready**: Easy to extend with new features
+- **🎛️ Modern Web Interface**: Advanced dashboard with smart debug logging
+- **📝 Performance Controls**: Toggle debug logging for optimal performance
+- **🔔 Device-Named Notifications**: User-friendly alerts with device names
+- **🔄 Auto-Scrolling Logs**: Latest activity always visible
+- **📱 Mobile Responsive**: Professional interface for all devices
+- **🔧 Easy Model Switching**: YOLO11 models with one command
+- **🛠️ Future-Ready**: Clean modular architecture for easy extension
 
 ## Documentation
 

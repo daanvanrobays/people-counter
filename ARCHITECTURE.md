@@ -1,57 +1,65 @@
-# 🏗️ Final Clean Architecture Summary
+# 🏗️ People Counter Architecture (2025)
 
-## ✅ **Architecture Cleanup Complete**
+## ✅ **Modern Architecture Overview**
 
-All shared components have been properly organized, and unused files have been removed.
+Advanced people counting system with modern web interface, intelligent debug logging, and YOLO11 detection. Clean modular design with performance optimizations and professional user experience.
 
 ## 📁 **Final Project Structure**
 
 ```
 people-counter/
-├── 📁 shared/                         # ✅ Shared components (NEW)
+├── 📁 shared/                         # ✅ Shared components
 │   ├── tracking/                      # Core tracking algorithms
 │   │   ├── __init__.py
-│   │   └── centroid_tracker.py        # Main tracking implementation
+│   │   └── centroid_tracker.py        # Kalman filter tracking
 │   ├── utils/                         # Shared utilities
 │   │   ├── __init__.py
 │   │   ├── geometry.py                # Math/geometry functions
 │   │   └── threading.py               # Threading utilities
-│   └── logging/                       # Shared logging
+│   └── logging/                       # 🆕 Smart debug logging system
 │       ├── __init__.py
-│       └── utils.py                   # Logging utilities
+│       └── utils.py                   # Intelligent log filtering & performance controls
 │
-├── 📁 config/                         # ✅ Application configuration (ROOT LEVEL)
-│   ├── config.py                      # Main configuration logic
-│   └── temp_config_*.json             # Runtime configuration updates
-│
-├── 📁 yolov8/                         # ✅ YOLOv8 processing module
+├── 📁 detection/                      # 🆕 Modern YOLO11 detection system
 │   ├── core/                          # Main processing logic
-│   ├── detection/                     # YOLO detection
-│   ├── video/                         # Video stream management
-│   ├── api/                           # API client
-│   ├── tracking/                      # YOLOv8-specific tracking
+│   ├── detection/                     # YOLO11 detection
+│   ├── video/                         # Stream management
+│   ├── api/                           # API client integration
+│   ├── tracking/                      # Tracking integration
 │   ├── visualization/                 # Frame rendering
 │   ├── management/                    # Model management
 │   └── README.md
 │
-├── 📁 web_ui/                         # ✅ Web interface module
-│   ├── models/                        # Data models
-│   ├── routes/                        # Flask routes (includes /api/ endpoints)
-│   ├── static/                        # Static assets
+│── 📁 yolov8/                         # ⚠️ Legacy YOLOv8 (deprecated)
+│   └── ... (deprecated components)
+│
+├── 📁 web_ui/                         # 🎨 Modern web interface
+│   ├── models/                        # Tracker management models
+│   ├── routes/                        # Flask routes & REST API
+│   ├── static/                        # 📱 CSS, JS, responsive design
+│   │   ├── css/dashboard.css          # Professional styling
+│   │   └── js/dashboard.js            # Smart logging, auto-scroll
 │   ├── templates/                     # HTML templates
-│   ├── utils/                         # Web UI utilities
+│   │   ├── base.html                  # Responsive base
+│   │   ├── dashboard.html             # Main dashboard
+│   │   └── _tracker_panel.html        # Tracker components
 │   └── app.py                         # Flask application
 │
+├── 📁 config/                         # ✅ Enhanced configuration
+│   ├── config.py                      # Config with debug logging controls
+│   └── temp_config_*.json             # Runtime configuration updates
+│
 ├── 📁 test/                           # ✅ Test videos and assets
-│   ├── escalator.webm
+│   ├── escalator.mp4
+│   ├── entrance.webm
 │   └── *.mp4
 │
-├── 📁 logs/                           # ✅ Application logs
+├── 📁 logs/                           # ✅ Smart debug logs
 │
-├── 📄 yolov8_main.py                  # ✅ NEW main entry point
-├── 📄 yolov8_video.py                 # ⚠️ Legacy compatibility
-├── 📄 web_tracker_ui.py               # ✅ Web UI launcher
+├── 📄 detection_main.py               # 🆕 Modern YOLO11 detection entry point
+├── 📄 web_tracker_ui.py               # 🎨 Advanced web interface launcher  
 ├── 📄 model_manager.py                # ✅ Model management utility
+├── 📄 yolov8_video.py                 # ⚠️ Legacy YOLOv8 (deprecated)
 │
 ├── 📁 tracking/                       # ⚠️ DEPRECATED (compatibility only)
 ├── 📁 helpers/                        # ⚠️ DEPRECATED (compatibility only)
@@ -59,17 +67,28 @@ people-counter/
 └── 📄 *.md                            # Documentation
 ```
 
-## 🗑️ **Files Removed**
+## 🆕 **New Features (2025)**
 
-### **✅ Removed Unused Files:**
-- ❌ `data/coco.yaml` - Not used (YOLOv8 has built-in class definitions)
-- ❌ `data/` folder - Empty after coco.yaml removal
-- ❌ `api/` folder - Replaced by `yolov8/api/` and `web_ui/routes/api.py`
-- ❌ `drawing/` folder - Replaced by `yolov8/visualization/`
+### **🎨 Modern Web Interface**
+- **Advanced Dashboard**: Real-time tracker management with live status updates
+- **Smart Debug Logging**: Performance toggle with intelligent log filtering
+- **Toast Notifications**: Professional feedback system with device names
+- **Auto-Scrolling Logs**: Latest activity always visible with smooth animations
+- **Mobile Responsive**: Works perfectly on all screen sizes
+- **Enhanced UX**: Clean typography, professional styling, intuitive controls
 
-### **⚠️ Deprecated but Kept for Compatibility:**
-- `tracking/` - Now imports from `shared/tracking/` with deprecation warning
-- `helpers/` - Now imports from `shared/utils/` and `shared/logging/` with deprecation warning
+### **📝 Smart Debug Logging System**
+- **Performance Controls**: Enable/disable logging for long-running deployments
+- **Intelligent Filtering**: Clean log messages without duplicate timestamps
+- **Real-Time Updates**: Auto-refresh logs only when trackers are active
+- **Memory Efficient**: Configurable log retention with automatic cleanup
+- **User-Friendly**: Device names instead of generic "tracker 0" references
+
+### **🤖 YOLO11 Detection System**
+- **Latest Models**: YOLO11 nano to extra-large for optimal performance
+- **Improved Architecture**: Clean separation of concerns
+- **Enhanced Processing**: Better error handling and stream management
+- **API Integration**: RESTful endpoints for all tracker operations
 
 ## 📊 **Configuration Decision: Why `config/` Stays at Root**
 
@@ -126,7 +145,7 @@ from shared.logging import get_tracker_debug_logger
 from config.config import Config, get_config
 
 # Module-specific
-from yolov8.core.processor import VideoProcessor
+from detection.core.processor import VideoProcessor
 from web_ui.models.tracker_manager import tracker_manager
 ```
 
