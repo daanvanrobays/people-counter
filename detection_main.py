@@ -1,8 +1,8 @@
-"""Main entry point for YOLOv8 people counting using clean architecture."""
+"""Main entry point for YOLO11 people counting using clean architecture."""
 
 import argparse
 import logging
-from yolov8.core.processor import VideoProcessor
+from detection.core.processor import VideoProcessor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="[INFO] %(message)s")
@@ -11,11 +11,11 @@ log = logging.getLogger(__name__)
 
 def parse_arguments():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="YOLOv8 People Counter")
+    parser = argparse.ArgumentParser(description="YOLO11 People Counter")
     parser.add_argument("-i", "--input", type=int, default=0,
                        help="Configuration input ID (default: 0)")
-    parser.add_argument("--model", type=str, default="yolov8m.pt",
-                       help="Path to YOLO model file (default: yolov8m.pt)")
+    parser.add_argument("--model", type=str, default="yolo11m.pt",
+                       help="Path to YOLO model file (default: yolo11m.pt)")
     parser.add_argument("--verbose", action="store_true",
                        help="Enable verbose logging")
     
@@ -30,7 +30,7 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         log.info("Verbose logging enabled")
     
-    log.info(f"Starting YOLOv8 People Counter with config ID: {args.input}")
+    log.info(f"Starting YOLO11 People Counter with config ID: {args.input}")
     log.info(f"Using model: {args.model}")
     
     try:
@@ -38,7 +38,7 @@ def main():
         processor = VideoProcessor(config_id=args.input)
         
         # Override model if specified
-        if args.model != "yolov8m.pt":
+        if args.model != "yolo11m.pt":
             if processor.detector.switch_model(args.model):
                 log.info(f"Switched to model: {args.model}")
             else:

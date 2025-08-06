@@ -10,40 +10,40 @@ log = logging.getLogger(__name__)
 
 # Model definitions
 YOLO_MODELS = {
-    "yolov8n.pt": {
-        "name": "YOLOv8 Nano",
+    "yolo11n.pt": {
+        "name": "YOLO11 Nano",
         "speed": "fastest",
         "accuracy": "lowest", 
         "size": "6MB",
         "description": "Best for real-time applications with limited resources",
         "recommended_for": ["Mobile devices", "Edge computing", "Real-time processing"]
     },
-    "yolov8s.pt": {
-        "name": "YOLOv8 Small",
+    "yolo11s.pt": {
+        "name": "YOLO11 Small",
         "speed": "very fast", 
         "accuracy": "low",
         "size": "22MB",
         "description": "Good balance for mobile/edge devices",
         "recommended_for": ["Embedded systems", "Fast processing", "Low memory devices"]
     },
-    "yolov8m.pt": {
-        "name": "YOLOv8 Medium",
+    "yolo11m.pt": {
+        "name": "YOLO11 Medium",
         "speed": "fast",
         "accuracy": "medium", 
         "size": "52MB",
         "description": "Default model - good balance of speed and accuracy",
         "recommended_for": ["General purpose", "Balanced performance", "Production systems"]
     },
-    "yolov8l.pt": {
-        "name": "YOLOv8 Large", 
+    "yolo11l.pt": {
+        "name": "YOLO11 Large", 
         "speed": "medium",
         "accuracy": "high",
         "size": "88MB", 
         "description": "Better accuracy for production systems",
         "recommended_for": ["High accuracy needs", "Server deployment", "Quality applications"]
     },
-    "yolov8x.pt": {
-        "name": "YOLOv8 Extra Large",
+    "yolo11x.pt": {
+        "name": "YOLO11 Extra Large",
         "speed": "slow",
         "accuracy": "highest",
         "size": "137MB",
@@ -192,7 +192,7 @@ class ModelManager:
         try:
             from config.config import get_config
             config = get_config(config_id)
-            return getattr(config, 'yolo_model', 'yolov8m.pt')
+            return getattr(config, 'yolo_model', 'yolo11m.pt')
         except Exception as e:
             log.error(f"Failed to get current model: {e}")
             return None
@@ -256,11 +256,11 @@ class ModelManager:
             List of recommended model names
         """
         recommendations = {
-            "real_time": ["yolov8n.pt", "yolov8s.pt"],
-            "accuracy": ["yolov8x.pt", "yolov8l.pt"],
-            "balanced": ["yolov8m.pt", "yolov8l.pt"],
-            "mobile": ["yolov8n.pt", "yolov8s.pt"],
-            "general": ["yolov8m.pt", "yolov8s.pt", "yolov8l.pt"]
+            "real_time": ["yolo11n.pt", "yolo11s.pt"],
+            "accuracy": ["yolo11x.pt", "yolo11l.pt"],
+            "balanced": ["yolo11m.pt", "yolo11l.pt"],
+            "mobile": ["yolo11n.pt", "yolo11s.pt"],
+            "general": ["yolo11m.pt", "yolo11s.pt", "yolo11l.pt"]
         }
         
         return recommendations.get(use_case, recommendations["general"])

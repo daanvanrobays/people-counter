@@ -391,52 +391,81 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    max-width: 400px;
 }
 
 .toast {
-    background-color: rgba(36, 93, 80, 0.9);
-    border: 1px solid rgba(243, 179, 35, 0.3);
+    background: rgba(36, 93, 80, 0.95);
+    border: 1px solid rgba(243, 179, 35, 0.4);
     border-radius: 8px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
     color: #eee7d7;
-    padding: 15px 20px;
-    margin-bottom: 10px;
-    min-width: 350px;
-    backdrop-filter: blur(5px);
+    padding: 16px 20px;
+    min-width: 300px;
+    backdrop-filter: blur(8px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
     opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.5s forwards, fadeOut 0.5s 4.5s forwards;
+    transform: translateY(30px);
+    animation: toastFadeInUp 0.4s ease-out forwards, toastFadeOut 0.4s ease-in 3.6s forwards;
+    position: relative;
+    overflow: hidden;
 }
 
-.toast-title {
-    font-weight: 700;
-    color: #f3b323;
-    margin-bottom: 8px;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.toast::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: #f3b323;
 }
 
-.toast.success {
-    border-left: 4px solid #28a745;
+.toast-success {
+    border-color: rgba(40, 167, 69, 0.4);
 }
 
-.toast.error {
-    border-left: 4px solid #dc3545;
+.toast-success::before {
+    background: #28a745;
 }
 
-@keyframes fadeInUp {
+.toast-error {
+    border-color: rgba(220, 53, 69, 0.4);
+}
+
+.toast-error::before {
+    background: #dc3545;
+}
+
+.toast-info {
+    border-color: rgba(243, 179, 35, 0.4);
+}
+
+.toast-info::before {
+    background: #f3b323;
+}
+
+@keyframes toastFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
-@keyframes fadeOut {
+@keyframes toastFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
     to {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(-20px) scale(0.95);
     }
 }
 
@@ -458,53 +487,120 @@ body::before {
     font-family: 'Courier New', monospace;
     font-size: 0.8rem;
     color: #eee7d7;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(243, 179, 35, 0.5) rgba(0, 0, 0, 0.2);
+}
+
+.debug-log-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.debug-log-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.debug-log-container::-webkit-scrollbar-thumb {
+    background: rgba(243, 179, 35, 0.5);
+    border-radius: 4px;
+}
+
+.debug-log-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(243, 179, 35, 0.7);
 }
 
 .log-entry {
     margin-bottom: 8px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     border-radius: 3px;
     border-left: 3px solid transparent;
-    word-break: break-all;
-}
-
-.log-entry.info {
-    border-left-color: #17a2b8;
-    background: rgba(23, 162, 184, 0.1);
-}
-
-.log-entry.warning {
-    border-left-color: #ffc107;
-    background: rgba(255, 193, 7, 0.1);
-}
-
-.log-entry.error {
-    border-left-color: #dc3545;
-    background: rgba(220, 53, 69, 0.1);
-}
-
-.log-entry.rtsp {
-    border-left-color: #f3b323;
-    background: rgba(243, 179, 35, 0.1);
+    word-break: break-word;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .log-timestamp {
     color: #6c757d;
-    font-size: 0.7rem;
-    margin-right: 8px;
-}
-
-.log-level {
-    font-weight: bold;
-    margin-right: 8px;
-    text-transform: uppercase;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: 'Courier New', monospace;
+    opacity: 0.8;
 }
 
 .log-message {
     color: #eee7d7;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    flex: 1;
     word-wrap: break-word;
 }
+
+.log-entry.new-log {
+    animation: newLogHighlight 1s ease-out;
+}
+
+@keyframes newLogHighlight {
+    0% {
+        background-color: rgba(243, 179, 35, 0.3);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.log-entry.info {
+    border-left-color: #17a2b8;
+    background: rgba(23, 162, 184, 0.08);
+}
+
+.log-entry.warning {
+    border-left-color: #ffc107;
+    background: rgba(255, 193, 7, 0.08);
+}
+
+.log-entry.warning .log-message {
+    color: #fff3cd;
+}
+
+.log-entry.error {
+    border-left-color: #dc3545;
+    background: rgba(220, 53, 69, 0.08);
+}
+
+.log-entry.error .log-message {
+    color: #f8d7da;
+}
+
+.log-entry.rtsp {
+    border-left-color: #f3b323;
+    background: rgba(243, 179, 35, 0.08);
+}
+
+.log-entry.rtsp .log-message {
+    color: #fff3cd;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .log-entry {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .log-timestamp {
+        font-size: 0.7rem;
+    }
+    
+    .log-message {
+        font-size: 0.75rem;
+    }
+}
+
 
 .video-preview {
     background: rgba(0, 0, 0, 0.8);
@@ -873,6 +969,73 @@ body::before {
 .logs-container {
     flex: 1;
     min-height: 400px;
+}
+
+/* Enhanced logs section styling */
+.log-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.debug-logging-control {
+    background: rgba(243, 179, 35, 0.1);
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid rgba(243, 179, 35, 0.2);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.debug-logging-control input[type="checkbox"] {
+    transform: scale(1.3);
+    margin-right: 8px;
+}
+
+.debug-logging-control label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.checkbox-label {
+    color: #f3b323;
+    font-size: 0.9rem;
+}
+
+.logging-note {
+    color: #eee7d7;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+
+/* Button improvements */
+.btn-sm {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-sm:hover {
+    transform: translateY(-1px);
+}
+
+/* Responsive design for log actions */
+@media (max-width: 768px) {
+    .log-actions {
+        justify-content: center;
+    }
+    
+    .debug-logging-control {
+        justify-content: center;
+        text-align: center;
+    }
 }
 
 

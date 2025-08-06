@@ -1,3 +1,9 @@
+// Helper function to get device name
+function getDeviceName(trackerId) {
+    const deviceInput = document.getElementById(`device-${trackerId}`);
+    return deviceInput ? deviceInput.value || `Tracker ${trackerId}` : `Tracker ${trackerId}`;
+}
+
 // Tab switching functionality
 function showTab(trackerId, tabName) {
     // Hide all tabs for this tracker
@@ -18,13 +24,11 @@ function showTab(trackerId, tabName) {
     if (tabName === 'testing') {
         // Refresh logs and stream info
         refreshDebugLogs(trackerId);
-        refreshStreamInfo();
     }
 }
 
 // Configuration management functions
 function applyConfig(configId) {
-    const testVideoMode = document.getElementById(`test-video-mode-${configId}`).checked;
     const streamUrl = document.getElementById(`stream-url-${configId}`).value;
     const device = document.getElementById(`device-${configId}`).value;
     const coordsLeftLine = parseInt(document.getElementById(`coords-left-line-${configId}`).value);
@@ -34,7 +38,7 @@ function applyConfig(configId) {
     const apiInterval = parseInt(document.getElementById(`api-interval-${configId}`).value);
 
     const config = {
-        debug_mode: testVideoMode,
+        debug_mode: false, // Default to false since test video mode was removed
         stream_url: streamUrl,
         device: device,
         coords_left_line: coordsLeftLine,
@@ -60,8 +64,71 @@ function applyConfig(configId) {
         }
     })
     .catch(error => {
-        showAlert(`Error updating config ${configId}: ${error.message}`, 'error', configId);
+        const deviceName = getDeviceName(configId);
+        showAlert(`Error updating config for ${deviceName}: ${error.message}`, 'error', configId);
     });
+}
+
+// Auto-refresh management
+let autoRefreshIntervals = {};
+
+// Handle debug logging toggle
+function toggleDebugLogging(trackerId) {
+    const checkbox = document.getElementById(`enable-debug-logging-${trackerId}`);
+    const isEnabled = checkbox.checked;
+    
+    // Update the config with the new debug logging state
+    const config = {
+        enable_debug_logging: isEnabled
+    };
+    
+    fetch(`/api/update_debug_logging/${trackerId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const deviceName = getDeviceName(trackerId);
+            const message = isEnabled ? 
+                `Debug logging enabled for ${deviceName}` : 
+                `Debug logging disabled for ${deviceName}`;
+            showAlert(message, 'info', trackerId);
+        } else {
+            showAlert(result.message, 'error', trackerId);
+            // Revert checkbox state on error
+            checkbox.checked = !isEnabled;
+        }
+    })
+    .catch(error => {
+        const deviceName = getDeviceName(trackerId);
+        showAlert(`Error updating debug logging for ${deviceName}: ${error.message}`, 'error', trackerId);
+        // Revert checkbox state on error
+        checkbox.checked = !isEnabled;
+    });
+}
+
+
+function startAutoRefresh(trackerId) {
+    // Clear any existing interval
+    if (autoRefreshIntervals[trackerId]) {
+        clearInterval(autoRefreshIntervals[trackerId]);
+    }
+    
+    // Always start auto-refresh when tracker is running
+    autoRefreshIntervals[trackerId] = setInterval(() => {
+        refreshDebugLogs(trackerId);
+    }, 3000); // Refresh every 3 seconds
+}
+
+function stopAutoRefresh(trackerId) {
+    if (autoRefreshIntervals[trackerId]) {
+        clearInterval(autoRefreshIntervals[trackerId]);
+        delete autoRefreshIntervals[trackerId];
+    }
 }
 
 // Tracker control functions
@@ -74,13 +141,15 @@ function startTracker(trackerId) {
         if (result.success) {
             document.getElementById(`status-${trackerId}`).textContent = 'Running';
             document.getElementById(`status-${trackerId}`).className = 'status running';
+            startAutoRefresh(trackerId);
             showAlert(result.message, 'success', trackerId);
         } else {
             showAlert(result.message, 'error', trackerId);
         }
     })
     .catch(error => {
-        showAlert(`Error starting tracker ${trackerId}: ${error.message}`, 'error', trackerId);
+        const deviceName = getDeviceName(trackerId);
+        showAlert(`Error starting ${deviceName}: ${error.message}`, 'error', trackerId);
     });
 }
 
@@ -93,89 +162,72 @@ function stopTracker(trackerId) {
         if (result.success) {
             document.getElementById(`status-${trackerId}`).textContent = 'Stopped';
             document.getElementById(`status-${trackerId}`).className = 'status stopped';
+            stopAutoRefresh(trackerId);
             showAlert(result.message, 'success', trackerId);
         } else {
             showAlert(result.message, 'error', trackerId);
         }
     })
     .catch(error => {
-        showAlert(`Error stopping tracker ${trackerId}: ${error.message}`, 'error', trackerId);
+        const deviceName = getDeviceName(trackerId);
+        showAlert(`Error stopping ${deviceName}: ${error.message}`, 'error', trackerId);
     });
 }
 
-// Video stream functions
-function startVideoStream(trackerId) {
-    fetch(`/api/start_stream/${trackerId}`, {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            const videoContainer = document.getElementById(`video-stream-${trackerId}`);
-            // Replace with actual video stream - add timestamp to prevent caching
-            const timestamp = new Date().getTime();
-            videoContainer.innerHTML = `<img src="/api/video_feed/${trackerId}?t=${timestamp}" alt="Live Stream" class="video-stream" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI0NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOHB4IiBmaWxsPSIjZjNiMzIzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TdHJlYW0gRXJyb3I8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNHB4IiBmaWxsPSIjYWFhIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5DaGVjayBjb25maWd1cmF0aW9uPC90ZXh0Pjwvc3ZnPg=='">`;
-            
-            // Update health indicators
-            document.getElementById(`health-dot-${trackerId}`).className = 'health-dot active';
-            document.getElementById(`health-status-${trackerId}`).textContent = 'Active';
-            
-            // Start video refresh
-            startVideoRefresh(trackerId);
-            
-            showAlert('Video stream started', 'success', trackerId);
-        } else {
-            showAlert(result.message, 'error', trackerId);
+// Helper function to clean log messages and format timestamps
+function formatLogEntry(log) {
+    // Parse the ISO timestamp to a more readable format
+    const timestamp = new Date(log.timestamp).toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    // Clean the message by removing embedded timestamps and log levels
+    let cleanMessage = log.message;
+    
+    // Remove embedded [INFO], [WARNING], [ERROR] prefixes
+    cleanMessage = cleanMessage.replace(/^\[INFO\]\s*/, '');
+    cleanMessage = cleanMessage.replace(/^\[WARNING\]\s*/, '');
+    cleanMessage = cleanMessage.replace(/^\[ERROR\]\s*/, '');
+    
+    // Remove embedded timestamps (various formats)
+    cleanMessage = cleanMessage.replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}:\s*/, '');
+    cleanMessage = cleanMessage.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.\d]*:\s*/, '');
+    cleanMessage = cleanMessage.replace(/^\d{2}:\d{2}:\d{2}:\s*/, '');
+    
+    return {
+        timestamp: timestamp,
+        message: cleanMessage.trim(),
+        level: log.level.toLowerCase()
+    };
+}
+
+// Helper function for smooth scroll to bottom
+function scrollToBottomSmooth(element) {
+    // Use requestAnimationFrame for smoother scrolling
+    const targetScrollTop = element.scrollHeight - element.clientHeight;
+    const startScrollTop = element.scrollTop;
+    const distance = targetScrollTop - startScrollTop;
+    const duration = 300; // 300ms animation
+    let startTime = null;
+    
+    function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        
+        // Easing function (ease-out)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        element.scrollTop = startScrollTop + (distance * easeOut);
+        
+        if (timeElapsed < duration) {
+            requestAnimationFrame(animation);
         }
-    })
-    .catch(error => {
-        showAlert(`Error starting video stream: ${error.message}`, 'error', trackerId);
-    });
-}
-
-function stopVideoStream(trackerId) {
-    const videoContainer = document.getElementById(`video-stream-${trackerId}`);
-    const trackerName = trackerId === 0 ? 'Entrance' : 'Exit';
-    
-    // Reset to placeholder SVG
-    videoContainer.innerHTML = `
-        <svg width="640" height="360" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100%" height="100%" fill="#333"/>
-            <text x="50%" y="45%" font-family="Arial, sans-serif" font-size="18px" fill="#f3b323" text-anchor="middle">${trackerName} Feed</text>
-            <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="14px" fill="#aaa" text-anchor="middle">Click "Start Preview"</text>
-        </svg>
-    `;
-    
-    // Stop video refresh
-    stopVideoRefresh(trackerId);
-    
-    // Update health indicators
-    document.getElementById(`health-dot-${trackerId}`).className = 'health-dot inactive';
-    document.getElementById(`health-status-${trackerId}`).textContent = 'Inactive';
-    document.getElementById(`fps-display-${trackerId}`).textContent = '0.0 FPS';
-    
-    showAlert('Video stream stopped', 'info', trackerId);
-}
-
-// Test video mode functions
-function toggleTestVideoMode(trackerId) {
-    const checkbox = document.getElementById(`test-video-mode-${trackerId}`);
-    const controlsPanel = document.getElementById(`test-video-controls-${trackerId}`);
-    
-    if (checkbox.checked) {
-        controlsPanel.classList.remove('hidden');
-    } else {
-        controlsPanel.classList.add('hidden');
     }
-}
-
-function updateStreamUrl(trackerId) {
-    const selectElement = document.getElementById(`test-video-${trackerId}`);
-    const streamUrlInput = document.getElementById(`stream-url-${trackerId}`);
     
-    if (selectElement.value) {
-        streamUrlInput.value = selectElement.value;
-    }
+    requestAnimationFrame(animation);
 }
 
 // Debug logs functions
@@ -185,16 +237,47 @@ function refreshDebugLogs(trackerId) {
     .then(data => {
         const logsContainer = document.getElementById(`debug-logs-${trackerId}`);
         if (data.logs && data.logs.length > 0) {
-            logsContainer.innerHTML = data.logs.map(log => 
-                `<div class="log-entry ${log.level}">[${log.timestamp}] ${log.message}</div>`
-            ).join('');
+            // Store current scroll position to check if user was at bottom
+            const wasAtBottom = logsContainer.scrollTop >= (logsContainer.scrollHeight - logsContainer.clientHeight - 50);
+            
+            // Store previous log count to detect new logs
+            const previousLogCount = logsContainer.children.length;
+            const newLogCount = data.logs.length;
+            const hasNewLogs = newLogCount > previousLogCount;
+            
+            logsContainer.innerHTML = data.logs.map((log, index) => {
+                const isNewLog = hasNewLogs && index >= previousLogCount;
+                const newLogClass = isNewLog ? ' new-log' : '';
+                const formattedLog = formatLogEntry(log);
+                return `<div class="log-entry ${formattedLog.level}${newLogClass}">
+                    <span class="log-timestamp">${formattedLog.timestamp}</span>
+                    <span class="log-message">${formattedLog.message}</span>
+                </div>`;
+            }).join('');
+            
+            // Auto-scroll to bottom if user was previously at bottom, on first load, or when new logs arrive
+            if (wasAtBottom || logsContainer.scrollTop === 0 || hasNewLogs) {
+                setTimeout(() => scrollToBottomSmooth(logsContainer), 100); // Small delay to allow DOM update
+            }
+            
+            // Remove new-log class after animation
+            if (hasNewLogs) {
+                setTimeout(() => {
+                    logsContainer.querySelectorAll('.log-entry.new-log').forEach(entry => {
+                        entry.classList.remove('new-log');
+                    });
+                }, 1000);
+            }
         } else {
             logsContainer.innerHTML = '<div class="log-entry info">No debug logs available</div>';
         }
     })
     .catch(error => {
-        document.getElementById(`debug-logs-${trackerId}`).innerHTML = 
+        const logsContainer = document.getElementById(`debug-logs-${trackerId}`);
+        logsContainer.innerHTML = 
             `<div class="log-entry error">Error loading logs: ${error.message}</div>`;
+        // Scroll to show error message
+        scrollToBottomSmooth(logsContainer);
     });
 }
 
@@ -215,96 +298,52 @@ function clearDebugLogs(trackerId) {
     });
 }
 
-// Stream info refresh function
-function refreshStreamInfo() {
-    fetch('/api/stream_info')
-    .then(response => response.json())
-    .then(data => {
-        // Update FPS displays and health indicators for all trackers
-        data.trackers.forEach((tracker, index) => {
-            document.getElementById(`fps-display-${index}`).textContent = `${tracker.fps} FPS`;
-            
-            const healthDot = document.getElementById(`health-dot-${index}`);
-            const healthStatus = document.getElementById(`health-status-${index}`);
-            
-            if (tracker.active) {
-                healthDot.className = 'health-dot active';
-                healthStatus.textContent = 'Active';
-            } else {
-                healthDot.className = 'health-dot inactive';
-                healthStatus.textContent = 'Inactive';
-            }
-        });
-    })
-    .catch(error => {
-        console.error('Error refreshing stream info:', error);
-    });
-}
-
 // Alert system
 function showAlert(message, type, trackerId = null) {
-    const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-error' : 'alert-info';
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert ${alertClass}`;
-    alertDiv.textContent = message;
+    // Create toast container if it doesn't exist
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
     
-    // Add to the tracker panel or body
-    const targetElement = trackerId !== null ? 
-        document.querySelector(`.tracker-panel:nth-child(${trackerId + 1})`) : 
-        document.body;
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
     
-    targetElement.appendChild(alertDiv);
+    // Add to container
+    container.appendChild(toast);
     
-    // Remove after 3 seconds
+    // Remove after 4 seconds
     setTimeout(() => {
-        alertDiv.remove();
-    }, 3000);
-}
-
-// Video refresh management
-let videoRefreshIntervals = {};
-
-function refreshVideoFrame(trackerId) {
-    const videoElement = document.querySelector(`#video-stream-${trackerId} img`);
-    if (videoElement && videoElement.src.includes('/api/video_feed/')) {
-        const timestamp = new Date().getTime();
-        const baseSrc = videoElement.src.split('?')[0];
-        videoElement.src = `${baseSrc}?t=${timestamp}`;
-    }
-}
-
-function startVideoRefresh(trackerId) {
-    stopVideoRefresh(trackerId); // Clear any existing interval
-    videoRefreshIntervals[trackerId] = setInterval(() => {
-        refreshVideoFrame(trackerId);
-    }, 200); // Refresh every 200ms (5 FPS)
-}
-
-function stopVideoRefresh(trackerId) {
-    if (videoRefreshIntervals[trackerId]) {
-        clearInterval(videoRefreshIntervals[trackerId]);
-        delete videoRefreshIntervals[trackerId];
-    }
+        toast.remove();
+    }, 4000);
 }
 
 // Initialize the interface
 window.addEventListener('load', () => {
-    // Initial refresh of stream info and debug logs
-    refreshStreamInfo();
+    // Initial refresh of debug logs
     refreshDebugLogs(0);
     refreshDebugLogs(1);
     // Open config tab by default
     showTab(0, 'config');
     showTab(1, 'config');
     
-    // Set up auto-refresh for logs
-    setInterval(() => {
-        if (document.getElementById('auto-refresh-logs-0').checked) {
-            refreshDebugLogs(0);
-        }
-        if (document.getElementById('auto-refresh-logs-1').checked) {
-            refreshDebugLogs(1);
-        }
-        refreshStreamInfo();
-    }, 5000); // Refresh every 5 seconds
+    // Check if trackers are already running and start auto-refresh
+    const status0 = document.getElementById('status-0').textContent;
+    const status1 = document.getElementById('status-1').textContent;
+    
+    if (status0 === 'Running') {
+        startAutoRefresh(0);
+    }
+    if (status1 === 'Running') {
+        startAutoRefresh(1);
+    }
+    
+    // Set up event listeners for debug logging checkboxes
+    document.getElementById('enable-debug-logging-0').addEventListener('change', () => toggleDebugLogging(0));
+    document.getElementById('enable-debug-logging-1').addEventListener('change', () => toggleDebugLogging(1));
+    
 });

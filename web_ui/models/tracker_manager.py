@@ -13,7 +13,7 @@ from web_ui.utils.message_filters import (
     should_ignore_message, is_info_message, 
     is_rtsp_error, is_ffmpeg_error
 )
-from yolov8.management.model_manager import ModelManager
+from detection.management.model_manager import ModelManager
 
 
 class TrackerManager:
@@ -41,7 +41,7 @@ class TrackerManager:
                 'coords_right_line': config.coords_right_line,
                 'angle_offset': config.angle_offset,
                 'distance_offset': config.distance_offset,
-                'yolo_model': getattr(config, 'yolo_model', 'yolov8m.pt'),
+                'yolo_model': getattr(config, 'yolo_model', 'yolo11m.pt'),
                 'debug_mode': False
             }
 
@@ -54,21 +54,6 @@ class TrackerManager:
                 del self.processes[config_id]
                 return "Stopped"
         return "Stopped"
-    
-    def get_test_videos(self):
-        """Get list of available test videos"""
-        test_dir = "test"
-        if not os.path.exists(test_dir):
-            return []
-        
-        video_extensions = ['.mp4', '.webm', '.avi', '.mov', '.mkv']
-        test_videos = []
-        
-        for file in os.listdir(test_dir):
-            if any(file.lower().endswith(ext) for ext in video_extensions):
-                test_videos.append(f"{test_dir}/{file}")
-        
-        return sorted(test_videos)
 
     def _log_stderr_output(self, config_id, stderr_stream):
         """Process and filter stderr output from tracker processes"""
@@ -81,7 +66,7 @@ class TrackerManager:
                     if should_ignore_message(decoded_line):
                         continue  # Skip logging entirely
                     elif is_info_message(decoded_line):
-                        debug_logger.log_info(f"Model Info: {decoded_line}")
+                        debug_logger.log_info(f"Model: {decoded_line}")
                     elif is_rtsp_error(decoded_line):
                         debug_logger.log_error(f"RTSP Error: {decoded_line}")
                     elif is_ffmpeg_error(decoded_line):
@@ -95,10 +80,17 @@ class TrackerManager:
                 break
         stderr_stream.close()
 
+    def _get_device_name(self, config_id):
+        """Get device name from config or fallback to tracker ID"""
+        config = self.configs.get(config_id, {})
+        device_name = config.get('device', '').strip()
+        return device_name if device_name else f"Tracker {config_id}"
+    
     def start_tracker(self, config_id):
         """Start a specific tracker instance"""
         if config_id in self.processes and self.processes[config_id].poll() is None:
-            return {"success": False, "message": f"Tracker {config_id} is already running"}
+            device_name = self._get_device_name(config_id)
+            return {"success": False, "message": f"{device_name} is already running"}
         
         try:
             # Create temporary config
@@ -106,11 +98,11 @@ class TrackerManager:
             
             # Get the YOLO model from config
             config = self.configs[config_id]
-            yolo_model = config.get('yolo_model', 'yolov8m.pt')
+            yolo_model = config.get('yolo_model', 'yolo11m.pt')
             
             # Build command with model parameter
             cmd = [
-                "python", "yolov8_main.py", 
+                "python", "detection_main.py", 
                 "-i", str(config_id),
                 "--model", yolo_model
             ]
@@ -135,10 +127,12 @@ class TrackerManager:
             
             mode_text = "debug mode" if config['debug_mode'] else "live mode"
             model_text = f"using {yolo_model}"
-            return {"success": True, "message": f"Tracker {config_id} started in {mode_text} {model_text}!"}
+            device_name = self._get_device_name(config_id)
+            return {"success": True, "message": f"{device_name} started in {mode_text} {model_text}!"}
             
         except Exception as e:
-            return {"success": False, "message": f"Failed to start tracker {config_id}: {str(e)}"}
+            device_name = self._get_device_name(config_id)
+            return {"success": False, "message": f"Failed to start {device_name}: {str(e)}"}
 
     def stop_tracker(self, config_id):
         """Stop a specific tracker instance"""
@@ -158,9 +152,11 @@ class TrackerManager:
                 self.stderr_threads.pop(config_id, None)
 
             self.clear_debug_logs(config_id)  # Clear logs on stop
-            return {"success": True, "message": f"Tracker {config_id} stopped and logs cleared"}
+            device_name = self._get_device_name(config_id)
+            return {"success": True, "message": f"{device_name} stopped and logs cleared"}
         
-        return {"success": False, "message": f"Tracker {config_id} is not running"}
+        device_name = self._get_device_name(config_id)
+        return {"success": False, "message": f"{device_name} is not running"}
     
     def clear_debug_logs(self, config_id):
         """Clear debug logs for a specific tracker"""
@@ -168,7 +164,8 @@ class TrackerManager:
         if os.path.exists(log_file):
             try:
                 os.remove(log_file)
-                return {"success": True, "message": f"Debug logs cleared for tracker {config_id}"}
+                device_name = self._get_device_name(config_id)
+                return {"success": True, "message": f"Debug logs cleared for {device_name}"}
             except Exception as e:
                 return {"success": False, "message": str(e)}
         return {"success": True, "message": "No log file to clear"}
@@ -176,9 +173,6 @@ class TrackerManager:
     def save_temp_config(self, config_id, config_updated=False):
         """Save temporary config file"""
         config = self.configs[config_id].copy()
-        
-        # Remove debug_mode and test_video from the saved config since they're UI-only
-        config.pop('test_video', None)
         
         # Add config_updated flag
         config['config_updated'] = config_updated
@@ -195,16 +189,17 @@ class TrackerManager:
         self.configs[config_id].update(new_config)
         # Important: Save to temp file with flag so running tracker can detect the change
         self.save_temp_config(config_id, config_updated=True)
+        device_name = self._get_device_name(config_id)
+        return {"success": True, "message": f"Configuration updated for {device_name}"}
     
-    def start_video_stream(self, config_id):
-        """Start video stream for preview"""
-        config = self.configs[config_id]
-        stream_url = config['stream_url']
-        return self.video_streamer.start_video_capture(config_id, stream_url)
-    
-    def stop_video_stream(self, config_id):
-        """Stop video stream"""
-        self.video_streamer.stop_video_capture(config_id)
+    def update_debug_logging(self, config_id, enable_debug_logging):
+        """Update debug logging setting for a tracker"""
+        self.configs[config_id]['enable_debug_logging'] = enable_debug_logging
+        # Save to temp file so running tracker can detect the change
+        self.save_temp_config(config_id, config_updated=True)
+        device_name = self._get_device_name(config_id)
+        status = "enabled" if enable_debug_logging else "disabled"
+        return {"success": True, "message": f"Debug logging {status} for {device_name}"}
     
     # Model Management Methods
     def get_available_models(self):
@@ -227,13 +222,14 @@ class TrackerManager:
         success, message = self.model_manager.set_active_model(model_name, config_id)
         
         if success:
-            return {"success": True, "message": f"Model set to {model_name} for tracker {config_id}"}
+            device_name = self._get_device_name(config_id)
+            return {"success": True, "message": f"Model set to {model_name} for {device_name}"}
         else:
             return {"success": False, "message": message}
     
     def get_current_model(self, config_id):
         """Get the current YOLO model for a configuration"""
-        return self.configs[config_id].get('yolo_model', 'yolov8m.pt')
+        return self.configs[config_id].get('yolo_model', 'yolo11m.pt')
     
     def test_model_performance(self, model_name):
         """Test the performance of a specific model"""

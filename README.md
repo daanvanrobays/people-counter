@@ -228,12 +228,6 @@ Enable debug logging in the web interface to diagnose issues:
 - `POST /api/models/test` - Test model performance
 - `GET /api/models/recommendations` - Get model recommendations
 
-#### Video Streaming
-- `POST /api/start_stream/<id>` - Start video stream preview
-- `GET /api/stop_stream/<id>` - Stop video stream
-- `GET /api/video_feed/<id>` - Get video frame (JPEG)
-- `GET /api/stream_info` - Get stream status for all trackers
-
 ## Migration Guide
 
 ### From Legacy to Clean Architecture

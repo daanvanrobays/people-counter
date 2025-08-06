@@ -16,5 +16,4 @@ def index():
     
     return render_template('dashboard.html',
                          configs=tracker_manager.configs,
-                         statuses=statuses,
-                         test_videos=tracker_manager.get_test_videos())
+                         statuses=statuses)

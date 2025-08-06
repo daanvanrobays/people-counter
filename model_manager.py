@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """YOLO Model Management Utility
 
-Easy script to download, list, and switch between different YOLO models.
+Easy script to download, list, and switch between different YOLO11 models.
 """
 
 import argparse
@@ -10,38 +10,38 @@ import os
 
 from ultralytics import YOLO
 
-# Available YOLOv8 models with their properties
+# Available YOLO11 models with their properties
 YOLO_MODELS = {
-    "yolov8n.pt": {
-        "name": "YOLOv8 Nano",
+    "yolo11n.pt": {
+        "name": "YOLO11 Nano",
         "speed": "fastest",
         "accuracy": "lowest",
         "size": "~6MB",
         "description": "Best for real-time applications with limited resources"
     },
-    "yolov8s.pt": {
-        "name": "YOLOv8 Small", 
+    "yolo11s.pt": {
+        "name": "YOLO11 Small", 
         "speed": "very fast",
         "accuracy": "low",
         "size": "~22MB",
         "description": "Good balance for mobile/edge devices"
     },
-    "yolov8m.pt": {
-        "name": "YOLOv8 Medium",
+    "yolo11m.pt": {
+        "name": "YOLO11 Medium",
         "speed": "fast", 
         "accuracy": "medium",
         "size": "~52MB",
         "description": "Default model - good balance of speed and accuracy"
     },
-    "yolov8l.pt": {
-        "name": "YOLOv8 Large",
+    "yolo11l.pt": {
+        "name": "YOLO11 Large",
         "speed": "medium",
         "accuracy": "high", 
         "size": "~88MB",
         "description": "Better accuracy for production systems"
     },
-    "yolov8x.pt": {
-        "name": "YOLOv8 Extra Large",
+    "yolo11x.pt": {
+        "name": "YOLO11 Extra Large",
         "speed": "slow",
         "accuracy": "highest",
         "size": "~137MB", 
@@ -52,7 +52,7 @@ YOLO_MODELS = {
 
 def list_models():
     """List all available YOLO models with their properties."""
-    print("🤖 Available YOLOv8 Models:\n")
+    print("🤖 Available YOLO11 Models:\n")
     
     for model_file, info in YOLO_MODELS.items():
         exists = "✅" if os.path.exists(model_file) else "⬇️"
@@ -179,7 +179,7 @@ def main():
     elif args.download:
         download_model(args.download)
     elif args.download_all:
-        print("⬇️ Downloading all YOLO models...")
+        print("⬇️ Downloading all YOLO11 models...")
         for model_name in YOLO_MODELS.keys():
             download_model(model_name)
     elif args.set_default:

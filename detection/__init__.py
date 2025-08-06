@@ -1,6 +1,6 @@
-"""YOLOv8 Video Processing Module
+"""YOLO11 Video Processing Module
 
-A clean architecture for YOLOv8-based people counting with tracking and API integration.
+A clean architecture for YOLO11-based people counting with tracking and API integration.
 """
 
 from .core.processor import VideoProcessor

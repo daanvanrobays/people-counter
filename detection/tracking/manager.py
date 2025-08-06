@@ -26,8 +26,8 @@ class TrackingManager:
         self.filter = DetectionFilter()
         self.counter = PeopleCounter(config)
         self.tracker = CentroidTracker(
-            max_disappeared=50,
-            max_distance=50,
+            max_disappeared=20,
+            max_distance=100,
             composite_threshold=0.7,
             composite_frames=10
         )
@@ -46,7 +46,7 @@ class TrackingManager:
         """
         # Filter detections by class
         person_detections = self.filter.filter_by_class(detections, target_class=0)
-        umbrella_detections = self.filter.filter_by_class(detections, target_class=25)
+        umbrella_detections = []
         
         # Apply additional filtering if needed
         person_detections = self._apply_additional_filtering(person_detections)
@@ -157,8 +157,8 @@ class TrackingManager:
     def reset_tracking(self) -> None:
         """Reset all tracking state."""
         self.tracker = CentroidTracker(
-            max_disappeared=50,
-            max_distance=50,
+            max_disappeared=45,
+            max_distance=60,
             composite_threshold=0.7,
             composite_frames=10
         )

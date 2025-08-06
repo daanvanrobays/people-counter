@@ -121,18 +121,17 @@ class PeopleCounter:
             centroid: Object centroid position
             initial_position: Initial position flag
         """
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         if self.config.verbose:
             log.info(
-                f"{timestamp}: {event_type} {object_type} {object_id} - "
+                f"{event_type} {object_type} {object_id} - "
                 f"count: {count}, delta: {delta}, dir: {direction:.2f}, "
                 f"height: {frame_height}, centroid: {centroid}, "
                 f"initial_pos_up: {initial_position}"
             )
         else:
             log.info(
-                f"{timestamp}: {event_type} {object_type} {object_id} - "
+                f"{event_type} {object_type} {object_id} - "
                 f"count: {count}, delta: {delta}"
             )
     

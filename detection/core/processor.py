@@ -165,7 +165,7 @@ class VideoProcessor:
                     break
                 
                 # Display frame
-                cv2.imshow('AFF People Tracker', processed_frame)
+                cv2.imshow(self.config.device, processed_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
                     

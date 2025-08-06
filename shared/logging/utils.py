@@ -12,6 +12,19 @@ class DebugLogger:
     def log_event(self, level, message, data=None):
         """Log an event to the debug file"""
         try:
+            # Check if debug logging is enabled by reading temp config
+            config_file = f"config/temp_config_{self.config_id}.json"
+            if os.path.exists(config_file):
+                try:
+                    with open(config_file, 'r') as f:
+                        config = json.load(f)
+                    # If debug logging is disabled, skip writing logs
+                    if not config.get('enable_debug_logging', True):
+                        return
+                except (json.JSONDecodeError, FileNotFoundError):
+                    # If we can't read config, default to logging enabled
+                    pass
+            
             # Read existing logs
             logs = []
             if os.path.exists(self.log_file):

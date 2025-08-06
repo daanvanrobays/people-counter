@@ -1,4 +1,4 @@
-"""YOLOv8 detection module."""
+"""YOLO11 detection module."""
 
 import logging
 from typing import List
@@ -8,9 +8,9 @@ log = logging.getLogger(__name__)
 
 
 class YOLODetector:
-    """YOLOv8 object detector for people and umbrella detection."""
+    """YOLO11 object detector for people and umbrella detection."""
     
-    def __init__(self, model_path: str = "yolov8m.pt"):
+    def __init__(self, model_path: str = "yolo11m.pt"):
         """Initialize the YOLO detector.
         
         Args:
@@ -21,10 +21,10 @@ class YOLODetector:
         self._load_model()
     
     def _load_model(self) -> None:
-        """Load the YOLOv8 model."""
+        """Load the YOLO11 model."""
         try:
             self.model = YOLO(self.model_path)
-            log.info(f"Loaded YOLOv8 model: {self.model_path}")
+            log.info(f"Loaded YOLO11 model: {self.model_path}")
         except Exception as e:
             log.error(f"Failed to load model {self.model_path}: {e}")
             raise

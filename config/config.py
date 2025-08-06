@@ -17,7 +17,8 @@ class Config:
     verbose: bool = False
     enable_composite_objects: bool = False
     debug_mode: bool = False
-    yolo_model: str = "yolov8m.pt"
+    enable_debug_logging: bool = True
+    yolo_model: str = "yolo11m.pt"
 
 
 def get_config(input):
@@ -41,11 +42,11 @@ def get_config(input):
             angle_offset=45.0,
             distance_offset=80.0,
             device="Kamerotski",
-            stream_url="test/escalator.webm",
+            stream_url="rtsp://localhost:8554/live",
             coords_left_line=50,
             coords_right_line=480,
             enable_composite_objects=False,
-            yolo_model="yolov8m.pt",
+            yolo_model="yolo11m.pt",
         )
     else:
         return Config(
@@ -55,9 +56,9 @@ def get_config(input):
             angle_offset=45.0,
             distance_offset=80.0,
             device="Henk",
-            stream_url="test/escalator.webm",
+            stream_url="rtsp://localhost:8554/live",
             coords_left_line=0,
             coords_right_line=395,
             enable_composite_objects=False,
-            yolo_model="yolov8m.pt",
+            yolo_model="yolo11m.pt",
         )

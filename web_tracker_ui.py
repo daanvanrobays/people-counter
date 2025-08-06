@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-YOLOv8 Multi-Tracker Web UI - Modular Architecture
+YOLO11 Multi-Tracker Web UI - Modular Architecture
 """
 import sys
 import os
@@ -14,6 +14,6 @@ from web_ui.app import create_app
 app = create_app()
 
 if __name__ == '__main__':
-    print("Starting YOLOv8 Multi-Tracker Web UI...")
+    print("Starting YOLO11 Multi-Tracker Web UI...")
     print("Open your browser and go to: http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
